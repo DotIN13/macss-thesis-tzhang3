@@ -1,0 +1,547 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+\usepackage{booktabs} 
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{float}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{Probing Political Ideology in Large Language Models:\break How Latent Political Representations Generalize Across Tasks}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{
+    Research Proposal \\
+    \\
+    Tianyi Zhang \\
+    The University of Chicago \\
+    \texttt{tzhang3@uchicago.edu}
+}
+
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
+
+\begin{document}
+\maketitle
+\thispagestyle{plain}
+\pagestyle{plain}
+
+\section{Introduction}
+
+Large language models (LLMs) have exhibited an impressive capacity to generate text reflecting a broad spectrum of ideological perspectives, including nuanced positions on polarizing political issues \citep{argyleOutOneMany2023, kimLinearRepresentationsPolitical2025, wuLargeLanguageModels2023a, lemensPositioningPoliticalTexts2025}. Recent studies have revealed that LLMs can simulate the political views of U.S. lawmakers and media outlets \citep{pmlr-v202-santurkar23a, bernardelleMappingInfluencingPolitical2024}. Furthermore, these ideological stances can often be linearly decoded from internal model activations using simple probes \citep{kimLinearRepresentationsPolitical2025, parkLinearRepresentationHypothesis2024}. This suggests that high-level constructs like \textit{liberal--conservative} ideology are not merely emergent properties of generated text, but are implicitly represented in discrete regions of the model's activation space.
+
+Despite these advances, much of the existing research has focused on detecting and monitoring these linear ideological representations in either diagnostic \citep{gurneeLanguageModelsRepresent2023, tiggesLinearRepresentationsSentiment2023} or text generation contexts \citep{marksGeometryTruthEmergent2023, kimLinearRepresentationsPolitical2025}. However, there remains a critical gap in understanding whether these representations are functionally implicated in the broader decision-making behaviors of LLMs. Specifically, it is unclear whether ideological dimensions identified via probing are merely descriptive features of the model’s internal geometry or if they exert causal influence on downstream \textit{social scientific} tasks such as political bias detection, voting preference simulation, and bias-neutral rewriting, and whether such entanglement mirror correlations observed in real-world.
+
+The main research question driving this proposal is: \textit{Do latent ideological directions discovered through linear probes generalize across diverse political reasoning tasks, and do these generalizations reflect the correlations and structures seen in real-world political activities?} To address this, the proposed work will move beyond descriptive probing to systematically and quantitatively test whether direct interventions on the ideological discourse dimension can steer the model’s performance in downstream behavioral dimensions including bias detection, text rewrites, and voting preferences that extend beyond basic political text generation.
+
+To address this, we have conducted preliminary investigations that provide promising support for further study.
+
+Specifically, our initial results include:
+
+\begin{itemize}
+\item \textbf{Cross-task generalization:} Ideological directions identified through linear probes generalize across political reasoning tasks such as bias detection, simulated voting, and partisan rewriting. This suggests these directions are functionally engaged and inter-related, not merely descriptive and isolated.
+
+\item \textbf{Alignment with real-world patterns:} While directions based on ideological discourse prompting and DW-NOMINATE scores \citep{carrollMeasuringBiasUncertainty2009} capture the ideological dimension which correlates strongly with the bias detection dimension, they have limited effects on behavioral tasks like vote simulation, suggesting the existence of multiple, partially disentangled ideological subspaces.
+
+\item \textbf{Asymmetrical dimensions:} In bias detection tasks, leftward interventions is less effective than rightward counterparts. Similarly, leftward interventions on text rewrites consistently produce coherent progressive framing, while rightward interventions often degrade output fluency, indicating imbalances shaped by the model’s pretraining and alignment.
+
+\end{itemize}
+
+These initial findings validate the feasibility and importance of the proposed research, highlighting the need to systematically examine how ideological representations in LLMs structure behavior across tasks. Understanding these dynamics is critical as LLMs are increasingly integrated into politically sensitive applications. If ideological biases go unchecked, models used in political decision support could skew recommendations, reinforce echo chambers, or subtly influence voter perceptions. In content moderation, such biases may lead to asymmetrical censorship, disproportionately affecting certain viewpoints. By probing the functional role of ideological directions, this work will provide the technical toolkit to audit, interpret, and responsibly intervene in LLM behavior, reducing real-world political risks and enhancing model accountability.
+
+\section{Related Work}
+
+\subsection{Measuring Political Ideology}
+
+The concept of political ideology is historically fluid and context-dependent, yet in political science, it is often operationalized along a single primary dimension, typically liberal--conservative in the U.S. context. This dimension captures consistent partisan divides on economic redistribution, social policies, and foreign affairs \citep{pooleSpatialModelsParliamentary2005, mccartyDefenseDWNOMINATE2016}. This simplification has proven effective in predicting roll-call voting patterns and broader policy alignments \citep{carrollMeasuringBiasUncertainty2009}.
+
+A milestone for such measurements of ideology in the U.S. is the DW-NOMINATE score \citep{pooleSpatialModelsParliamentary2005,carrollMeasuringBiasUncertainty2009}, which models lawmakers' voting behavior as a function of a low-dimensional ideological space. While being widely used due to its interpretability, it has also faced criticisms, such as its reliance on roll-call data that may not fully capture issue-specific nuance, and being a simple projection of the partisan divide \citep{mccartyDefenseDWNOMINATE2016}.
+
+Although several alternative approaches have been proposed to replace or complement DW-NOMINATE, including Bayesian item-response theory models \citep{caugheyDynamicEstimationLatent2015}, campaign finance-based measures \citep{bonicaMappingIdeologicalMarketplace2014}, and text-based models \citep{vafaTextBasedIdealPoints2020}, no single method has achieved widespread adoption as a superior replacement.
+
+As a result, our work, like \citet{kimLinearRepresentationsPolitical2025}, leverages DW-NOMINATE as a grounding for ideological direction discovery in LLMs. This is partly pragmatic: in the U.S. political landscape, DW-NOMINATE's liberal--conservative axis remains a reliable “first-order” dimension that correlates strongly with not only voting but also issue positions and partisan identity. This makes it an expedient choice for mapping and manipulating ideological representations in LLMs.
+
+Interestingly, our preliminary results show that even if DW-NOMINATE-based ideological directions were not perfectly representative of the ideological divide in the general U.S. population, it is still able to generalize and influence tasks involving the liberal--conservative dimension such as bias detection and text rewriting. This suggests that the model might have learned to associate DW-NOMINATE dimensions with the actual liberal--conservative dimension from the massive online discussion that frequently use these concepts interchangeably. However, it remains an open question whether similar ideological dimensions exist and generalize in non-U.S. contexts.
+
+Beyond the U.S. political context, global ideological systems are often multidimensional and shaped by unique cultural, religious, and economic factors \citep{haerpferWorldValuesSurvey2024}. Instruments like the World Values Survey reveal dimensions such as secular--traditional and survival--self-expression, which do not always align neatly with the U.S. liberal--conservative axis \citep{inglehartCulturalEvolutionPeoples2018}. While our current work focuses on the U.S.-specific ideological constructs as a starting point, extending this analysis to capture diverse global ideological systems and their interactions with LLMs is an important direction for future research.
+
+\subsection{Ideological Representations in LLMs}
+
+Apart from the attempts to measure ideological leanings amongst human, scholars are increasingly interested in probing political stance and political behaviors in general in large language models. These models are employed to simulate human-like political behavior, replicate domain-specific attitudes, and support complex downstream applications such as multi-agent deliberation \citep{daiArtificialLeviathanExploring2024} and political forecasting . Early studies demonstrated that LLMs can adopt partisan personas or reflect the ideological preferences of specific demographic subgroups under appropriate prompting conditions \citep{argyleOutOneMany2023, motokiMoreHumanHuman2024, potterHiddenPersuadersLLMs2024}. Subsequent work showed that models can emulate structured political attitudes across policy domains such as abortion, immigration, and foreign policy \citep{wuLargeLanguageModels2023a, ohaganMeasurementAgeLLMs2023}, enabling applications including debate agents \citep{costelloDurablyReducingConspiracy2024} and agent-based simulations of group polarization and opinion dynamics \citep{parkLinearRepresentationHypothesis2024, tornbergSimulatingSocialMedia2023, mouUnveilingTruthFacilitating2024}.
+
+Despite these advances, a persistent concern is that LLMs may encode internal ideological biases that silently influence reasoning and generation in ways that are not directly observable in outputs. These latent biases pose significant risks to the integrity of social simulations and decision-support tools that rely on faithful reproduction of diverse perspectives. Moreover, such biases are often resilient to post-hoc alignment techniques like instruction tuning or reinforcement learning from human feedback (RLHF). For example, \citet{guptaBiasRunsDeep2023} show that even when surface-level biases are neutralized, internal representations can remain skewed and lead to distorted reasoning under persona conditioning. This raises critical questions about how ideological knowledge is encoded and how it can be identified, interpreted, and controlled within the model’s internal structure.
+
+\subsection{Probing and Inference-Time Intervention}
+
+Probing methods have been widely used to identify whether neural network activations encode abstract concepts \citep{alainUnderstandingIntermediateLayers2016, belinkovProbingClassifiersPromises2022}. Linear probes are favored for interpretability, operating under the hypothesis that important semantic features correspond to linearly separable directions in the model’s representation space \citep{mikolov-etal-2013-linguistic, parkLinearRepresentationHypothesis2024}. Probing has revealed that LLMs encode sentiment, temporal reasoning, and spatial knowledge in such directions \citep{tiggesLinearRepresentationsSentiment2023, gurneeLanguageModelsRepresent2023, nandaEmergentLinearRepresentations2023, goldowsky-dillDetectingStrategicDeception2025}.
+
+Beyond diagnostic analysis, recent work explores inference-time intervention. \citet{liInferenceTimeInterventionEliciting2023} proposed methods for modifying specific vectors to steer output behavior, while \citet{marksGeometryTruthEmergent2023} introduced causal tracing to manipulate factual knowledge. Other studies have identified and manipulated abstract latent dimensions—such as the “thought” dimension for enhanced model reasoning \citep{wangThoughtProbeClassifierGuidedThought2025}. \citet{kimLinearRepresentationsPolitical2025} further extended these ideas to ideological dimensions, showing that scaling pre-trained political probes during generation steers model output leftward or rightward. However, existing evaluations are confined to textual output or persona imitation. It remains under-explored whether these ideological interventions affect model reasoning in broader social-scientific tasks, such as bias detection, partisan-text rewriting, or voting behavior prediction.
+
+\subsection{Generalizable Knowledge in LLMs}
+
+Recent research has increasingly focused on whether the internal representations of LLMs support structured reasoning and generalized knowledge application. While existing studies emphasized factual recall and training document tracing \citep{petroniLanguageModelsKnowledge2019, liuOLMoTraceTracingLanguage2025}, another line of work explores whether models internalize abstract reasoning patterns—such as moral decision-making, commonsense logic, and social inference \citep{ganguliCapacityMoralSelfCorrection2023, sapSocialBiasFrames2020}. Complementary research has further proposed that knowledge itself may be encoded as low-dimensional latent directions within model representations \citep{ju-etal-2024-large}.
+
+However, the extent to which knowledge, for example, political beliefs, generalizes across tasks remains poorly understood. Existing studies show that biases acquired during pretraining can affect downstream tasks such as misinformation detection or moral reasoning \citep{fengPretrainingDataLanguage2023, guptaBiasRunsDeep2023}, even when surface-level outputs appear neutral. These findings suggest that ideological signals may persist as latent components of the model’s internal reasoning.
+
+Our work contributes to this line of inquiry by evaluating whether latent ideological representations, once isolated via probing and perturbed via causal interventions, influence model behavior across a range of politically sensitive reasoning tasks, including policy classification, perspective rewriting, and voting preference prediction. This allows us to test whether ideology functions as a symbolic and transferable knowledge structure within LLMs.
+
+\section{Methodology}
+
+We investigate whether latent ideological representations discovered in large language models (LLMs) can causally influence behavior across downstream tasks. Building on \citet{kimLinearRepresentationsPolitical2025}, we extend the analysis by incorporating two complementary ideological supervision signals: (1) \textbf{DW--NOMINATE} scores of U.S.\ lawmakers, and (2) \textbf{Manifesto Project party RILE} scores, normalized to the range $[-1, 1]$. 
+
+This dual-source design enables us to examine whether different operationalizations of the left--right spectrum, that is, legislative behavior and party narratives, yield consistent latent structures in model activations. We then test whether manipulating these ideological directions at inference time affects model behavior on in-domain politically sensitive tasks and out-of-domain cognitive and reasoning tasks.
+
+\subsection{Activation Extraction}
+
+We follow the linear probing and steering methodology of \citet{kimLinearRepresentationsPolitical2025}, which builds on the inference-time control framework of \citet{liInferenceTimeInterventionEliciting2023}. Specifically, we train two independent sets of linear probes, one using DW--NOMINATE scores and another using Manifesto Project RILE scores, to predict ideological orientation from attention head activations in a decoder-only transformer.
+
+For each attention head $x_{\ell,h}^{(i)}$ (layer $\ell$, head $h$) and input prompt $i \in w$, we fit a ridge regression model:
+\begin{equation*}
+    y^{(i)}_{\ell,h} = \theta_{\ell,h}^\top x_{\ell,h}^{(i)},
+\end{equation*}
+where $\theta_{\ell,h} \in \mathbb{R}^{d_{\ell,h}}$ are the learned probe coefficients and $y^{(i)}$ denotes either the DW--NOMINATE or normalized RILE score. Ridge regularization mitigates overfitting and multicollinearity in the activation space. Probes are trained independently for each head, yielding $L \times H$ total probes for each operationalization of ideological leanings.
+
+\subsection{Inference-time Intervention}
+We treat the learned probe coefficients as latent ideological directions and apply inference-time interventions following \citet{liInferenceTimeInterventionEliciting2023}. During generation, each activation $x_{\ell,h}$ is modified as:
+\begin{equation*}
+    x_{\ell,h} \leftarrow x_{\ell,h} + \alpha \, \sigma_{\ell,h} \, \theta_{\ell,h}
+\end{equation*}
+where $\sigma_{\ell,h}$ is the empirical standard deviation of activations at head $(\ell,h)$, and $\alpha \in \mathbb{R}$ controls the strength and direction of ideological steering. Negative $\alpha$ values steer toward more liberal representations, while positive values induce more conservative behavior.
+
+For each ideological dimension (DW--NOMINATE and RILE), we intervene along the top-$k$ most predictive attention heads (ranked by probe $R^2$). This design enables causal testing of how each latent ideological axis influences model behavior without modifying model weights or architecture.
+
+\subsection{Cross-dimensional Correlation Analysis}
+
+\paragraph{Representational similarity.}
+To evaluate whether attention heads encode consistent ideological information across the two supervision sources, we measure the similarity between the corresponding probe coefficient vectors for each head. Specifically, for layer $\ell$ and head $h$, we compute the cosine similarity between the DW--NOMINATE- and RILE-trained probes:
+\begin{equation*}
+    \text{sim}_{\ell,h} = 
+    \frac{\theta_{\ell,h}^{\text{NOM}} \cdot \theta_{\ell,h}^{\text{RILE}}}
+         {\|\theta_{\ell,h}^{\text{NOM}}\| \, \|\theta_{\ell,h}^{\text{RILE}}\|}.
+\end{equation*}
+High similarity values indicate that both ideological definitions produce comparable linear directions in activation space, suggesting shared representational subspaces across legislative and manifesto-based ideology. Conversely, low similarity implies that certain attention heads specialize in ideological cues specific to either parliamentary behavior (DW--NOMINATE) or party discourse (RILE).
+
+\paragraph{Head-wise performance correlation.}
+To assess the consistency of ideological encoding strength across the two supervision signals, we directly correlate the predictive performance of each attention head between DW--NOMINATE and RILE probes. For every head $(\ell,h)$, we obtain two coefficients of determination, ${R^2}_{\ell,h}^{\text{NOM}}$ and ${R^2}_{\ell,h}^{\text{RILE}}$, representing how well activations predict each ideological target. We then compute the Pearson correlation across all heads:
+\begin{equation*}
+    r_{R^2} = \mathrm{corr}\!\left({R^2}_{\ell,h}^{\text{NOM}}, {R^2}_{\ell,h}^{\text{RILE}}\right)
+\end{equation*}
+A high $r_{R^2}$ indicates that attention heads which strongly encode ideology under DW--NOMINATE also tend to perform well under RILE supervision, suggesting a shared representational basis for both ideological definitions. In contrast, a low or near-zero correlation implies that ideological sensitivity is distributed differently across heads, reflecting task- or dataset-specific specialization. We further visualize these relationships through head-wise scatter plots and layer-wise heatmaps of ${R^2}_{\ell,h}^{\text{NOM}}$ versus ${R^2}_{\ell,h}^{\text{RILE}}$, enabling a fine-grained comparison of where ideological information is most consistently localized within the model.
+
+\paragraph{Cross-application of probes.}
+Finally, to directly test functional transfer between ideological definitions, we cross-apply probes trained on one ideological dataset to predict outcomes on the other. For each head $(\ell,h)$, we use $\theta_{\ell,h}^{\text{NOM}}$ to predict RILE scores and $\theta_{\ell,h}^{\text{RILE}}$ to predict DW--NOMINATE scores.
+
+High ${R^2}_{\ell,h}^{\text{cross}}$ values indicate that ideological directions learned under one labeling scheme generalize effectively to the other, reflecting a shared latent axis of political orientation. Conversely, low cross-domain performance suggests that the probes capture dataset-specific nuances rather than a unified ideological geometry. Together, these three analyses provide complementary evidence of cross-source generalizability in the model’s internal representations of political ideology as a coherent social construct.
+
+\subsection{In-domain Downstream Tasks}
+
+We evaluate the behavioral and representational effects of ideological interventions derived from both DW--NOMINATE and party RILE across three downstream tasks: \emph{political bias detection}, \emph{voting preference prediction}, and \emph{bias neutralization via rewriting}. Each task probes a distinct dimension of political reasoning, allowing us to assess whether the two ideological axes generalize beyond their training signals and influence model behavior in consistent ways.
+
+\subsubsection{Political Bias Detection}
+
+\textbf{Task.} We test whether the model’s internal ideological representations affect its ability to classify political statements as liberal, conservative, or neutral under both ideological steering directions.
+
+\textbf{Dataset.} We use a synthetic dataset of 240 policy statements generated for U.S.\ lawmakers across six policy domains. The dataset covers domestic issues (abortion, immigration, border control) and foreign policy topics (military aid to Ukraine, military aid to Israel, humanitarian aid to Gaza).
+
+\textbf{Prompt format.}
+\begin{quote}
+\texttt{USER: In the context of 2019 U.S. politics, is the following statement biased and leaning toward a liberal or conservative viewpoint? ``[Statement]''}\\
+\texttt{ASSISTANT: The statement is}
+\end{quote}
+
+\textbf{Intervention and Evaluation.}
+We systematically intervene on the model’s activation space by varying the steering coefficient $\alpha$ along each ideological axis (DW--NOMINATE and RILE), using $\alpha \in \{-30,-20,-10,0,10,20,30\}$ to control the magnitude and direction of the shift. For each attention head $k$ and each $\alpha$, we compute the average predicted label across all policy statements. Outputs are parsed as five-scale numeric labels $\ell$ (conservative $=-2$, neutral $=0$, liberal $=+2$).
+
+For each ideological axis, we calculate the Pearson correlation coefficient between $\alpha$ and the mean label $\overline{\ell}_{k,\alpha}$:
+\begin{equation*}
+    r = \frac{\mathrm{cov}(\alpha, \overline{\ell})}{\sigma_\alpha \, \sigma_{\overline{\ell}}},
+\end{equation*}
+quantifying how strongly steering magnitude predicts directional classification bias. Comparing the resulting $r$ values across the two ideological sources provides a direct measure of how similarly each learned axis drives partisan perception in the model’s internal space.
+
+\textbf{Objective.} This analysis tests whether linear ideological interventions causally steer political bias detection and whether the effects of DW--NOMINATE- and RILE-based steering are correlated. A consistent monotonic trend across both axes would suggest that the model encodes a unified ideological latent space influencing evaluative judgments.
+
+\subsubsection{Voting Preference Prediction}
+
+\textbf{Task.} The model is asked to simulate a voting decision under an ideological persona, probing the behavioral implications of ideological representations in decision-oriented contexts.
+
+\textbf{Prompt format.}
+\begin{quote}
+\texttt{USER: In the context of 2019 U.S. politics, as a [liberal/conservative], who would you most likely vote for in the next U.S. presidential election: Joe Biden or Donald Trump?}\\
+\texttt{ASSISTANT: The person would most likely vote for}
+\end{quote}
+
+\textbf{Evaluation.} We perform inference-time interventions along both ideological directions, recording the model’s predicted preference under varying $\alpha$ values. For each axis, we compute the probability of selecting each candidate and quantify directional sensitivity as the slope of this probability with respect to $\alpha$. We then compare the sign and magnitude of these slopes between the DW--NOMINATE and RILE axes to assess alignment in behavioral effects.
+
+\textbf{Objective.} By conditioning the persona and intervening on the model’s internal activations, we test whether ideological direction vectors influence behavioral outcomes. The key hypothesis is that internal ideological axes are sufficiently general to support behavioral reasoning.
+
+\subsubsection{Bias Neutralization via Rewriting}
+
+\textbf{Task.} The model is instructed to rewrite the 240 policy statements from the bias detection dataset into politically neutral language. This task assesses whether internal ideological representations influence the model’s capacity for bias identification and removal in generative outputs.
+
+\textbf{Prompt format.}
+\begin{quote}
+\texttt{USER: In the context of 2019 U.S. politics, please rewrite the following statement to make it politically neutral and free from liberal or conservative bias: ``[Statement]''}\\
+\texttt{ASSISTANT: Here's a neutral version of the text:}
+\end{quote}
+
+\textbf{Evaluation.} For each ideological axis and $\alpha$ value, we evaluate the rewritten outputs using lexical and embedding-based bias metrics (e.g., partisan phrase frequency, cosine similarity to ideological word vectors). By comparing neutrality scores under both DW--NOMINATE- and RILE-based interventions, we measure whether the two ideological directions similarly facilitate or hinder bias reduction.
+
+\textbf{Objective.} We test whether low-magnitude interventions enhance neutrality by amplifying bias-detection sensitivity, while large-magnitude interventions reintroduce partisan framing. Cross-axis consistency in these effects would suggest that both ideological definitions converge on a functionally coherent latent representation of political balance.
+
+\subsubsection{Roll-call Voting Behavior}
+
+\textbf{Task.} We evaluate whether latent ideological steering predicts \emph{actual} legislative voting behavior. Concretely, given a member of Congress and a specific roll-call vote, the model is asked to answer whether the member would vote \textbf{yea} or \textbf{nay}.
+
+\textbf{Dataset.} We construct a labeled set of (\emph{lawmaker}, \emph{bill}) pairs from U.S.\ House and Senate roll-call records (e.g., 115th--118th Congresses), sampling across parties and issue areas. For each pair we include the bill title and a short, standardized summary to reduce reliance on background knowledge.
+
+\textbf{Prompt format.}
+\begin{quote}
+\texttt{USER: In the context of the [year] U.S. Congress, as [name], would you vote yea or nay on the following bill?}\\
+\texttt{[bill title] -- [summary]}\\
+\texttt{ASSISTANT: The vote would be}
+\end{quote}
+
+\textbf{Intervention and Evaluation.} We apply inference-time interventions along both ideological axes (DW--NOMINATE and RILE), varying $\alpha \in \{-30,-20,-10,0,10,20,30\}$ over the top-$k$ heads. For each (\emph{lawmaker}, \emph{bill}) instance, we compute the Accuracy / F1 against ground-truth votes at $\alpha=0$ and under steering, as well as the correlation of steering and performance change:
+
+\[
+    r_{\text{vote}} = \mathrm{corr}\!\left(\alpha, \Delta \text{Acc}\right)
+\]
+
+where $\Delta \text{Acc} = \text{Acc}_\alpha - \text{Acc}_0$.
+
+\textbf{Objective.} This task directly probes the alignment between probed ideological directions and real legislative behavior. Because DW--NOMINATE is synthesized from roll-call behavior, we expect stronger, more monotonic effects under DW-based steering. We hypothesize that DW--NOMINATE steering will \emph{most} effectively recover yea/nay decisions, while RILE-based steering will show partial but weaker generalization, illuminating how manifesto-derived ideology transfers to roll-call behavior.
+
+\subsection{Out-of-domain Downstream Tasks}
+
+To evaluate whether ideological representations extend beyond explicitly political contexts, we conduct two out-of-domain experiments that probe general reasoning and collaborative behavior. These tasks assess whether steering along ideological directions influences model performance on domains unrelated to politics, testing the hypothesis that ideological latent variables correlate with broader cognitive or social dimensions in LLMs.
+
+\subsubsection{Mathematical Reasoning}
+
+\textbf{Task.} We measure whether ideological steering affects the model’s analytical reasoning ability on a standardized mathematical benchmark. Specifically, we evaluate model accuracy on the \textbf{AIME} (American Invitational Mathematics Examination) dataset under inference-time steering along the DW--NOMINATE and RILE ideological axes.
+
+\textbf{Evaluation.} For each axis, we apply interventions with $\alpha \in \{-30, -20, -10, 0, 10, 20, 30\}$ and record the resulting AIME accuracy at each steering magnitude. We then compute the Pearson correlation between $\alpha$ and the relative change in accuracy ($\Delta \text{Acc}$) with respect to the unsteered baseline:
+\begin{equation*}
+    r_{\text{AIME}} = \mathrm{corr}\!\left(\alpha, \Delta \text{Acc}\right),
+\end{equation*}
+where $\Delta \text{Acc} = \text{Acc}_{\alpha} - \text{Acc}_{0}$. A significant correlation would indicate that steering along ideological dimensions systematically modulates reasoning performance, revealing a link between politically supervised representations and general cognitive ability.
+
+\textbf{Objective.} This experiment investigates the generalizability of the learned ideological dimensions to out-of-domain model behaviors. By examining how steering along DW--NOMINATE and RILE axes affects mathematical reasoning accuracy, we assess whether ideological representations discovered in political contexts extend to cognitive and reasoning capabilities observed in these models.
+
+\subsubsection{Agentic Collaboration}
+
+\textbf{Task.} To examine whether ideological representations influence emergent collaboration, we simulate multi-agent problem-solving using ideologically steered model instances. Each agent is instantiated with a persona induced by steering along either the liberal ($\alpha < 0$) or conservative ($\alpha > 0$) direction. We evaluate group performance on the \textbf{LiveBench} collaborative reasoning benchmark across different team compositions.
+
+\textbf{Experimental setup.} We construct groups of two, three, and four agents with varying ideological compositions:
+\begin{itemize}
+    \item \textbf{Homogeneous:} all-liberal or all-conservative agents;
+    \item \textbf{Mixed:} balanced liberal–conservative teams in ratios of 1:1, 2:1, and 3:1.
+\end{itemize}
+Each team collaboratively solves LiveBench tasks through structured message passing and consensus formation. We measure group performance as the average task success rate under each composition and axis (DW--NOMINATE vs.\ RILE).
+
+\textbf{Evaluation.} We analyze whether ideological heterogeneity enhances or suppresses collective performance. Specifically, we compute the correlation between the proportion of liberal steering in a group and its task success rate:
+
+
+\begin{equation*}
+    r_{\text{collab}} = \mathrm{corr}\!\left(p_{\text{lib}}, \text{Acc}_{\text{group}}\right),
+\end{equation*}
+
+where $p_{\text{lib}}$ denotes the fraction of liberal-steered agents. A positive $r_{\text{collab}}$ would suggest that politically diverse or liberal-skewed groups foster more effective coordination, whereas a negative correlation would imply ideological polarization or inefficiency in multi-agent interaction.
+
+\textbf{Objective.} This experiment investigates whether latent ideological representations modulate social reasoning and cooperative dynamics. By comparing DW--NOMINATE- and RILE-based steering, we test whether mixed ideological dimensions correlate with real-world emergent properties in collective intelligence, such as collaboration, deliberation and verification.
+
+\subsection{Multi-modal Generalizability}
+
+To assess whether ideological representations extend beyond text-based language models, we evaluate the generalizability of our probes to multi-modal vision--language models (VLMs). This analysis examines whether ideological features identified in textual activations are also reflected in image-conditioned representations, revealing potential alignment between linguistic and visual ideology encoding.
+
+\subsubsection{Visual Ideology Probing}
+
+\textbf{Task.} We investigate whether vision--language models exhibit latent ideological bias when interpreting political imagery. Specifically, we use pre-trained VLMs, including \textbf{Qwen-VL}, \textbf{Gemma-VL}, and \textbf{DeepSeek-VL}, and present them with politically charged images of public figures, campaign events, and symbolic artifacts. Each image is selected to represent either a left-leaning or right-leaning framing.
+
+\textbf{Procedure.} For each image, we prompt the model to produce a short natural-language caption:
+\begin{quote}
+\texttt{USER: Please describe the following image in one sentence.}\\
+\texttt{ASSISTANT: [Generated caption]}
+\end{quote}
+We extract internal activations from the language-decoder layers of the captioning component for each generated output token. These activations are then projected using our pre-trained ridge probes ($\theta_{\ell,h}^{\text{NOM}}$ and $\theta_{\ell,h}^{\text{RILE}}$) on these VLMs to estimate the implicit ideological orientation of the model’s captioning behavior.
+
+\textbf{Evaluation.} We compute the average predicted ideology score $\hat{y}^{(i)}$ for each captioned image and compare it to the annotated political valence of the input image. Specifically, for each model and supervision axis, we measure the Pearson correlation between the human-assigned bias label ($y_{\text{img}} \in \{-1, +1\}$) and the mean probe output across all heads:
+\begin{equation*}
+    r_{\text{VLM}} = \mathrm{corr}\!\left(y_{\text{img}}, \; \overline{\hat{y}}_{\text{caption}}\right).
+\end{equation*}
+High $r_{\text{VLM}}$ values indicate that the textual probes trained on political language can reliably detect ideological framing in image-conditioned captions, suggesting shared representational subspaces between textual and visual modalities. We further visualize per-layer correlation heatmaps to identify which layers or components of the VLM most strongly encode ideological content.
+
+\textbf{Objective.} This experiment investigates the multi-modal generalizability of ideological representations. By applying language-derived ideological probes to VLM activations, we test whether latent political dimensions captured through text supervision extend to visual reasoning and description. Consistent correlations across DW--NOMINATE and RILE axes would indicate that ideology-sensitive features are not confined to language modeling but manifest as a cross-modal cognitive bias in foundation models.
+
+\subsection{Generalization Hypothesis}
+
+The above tasks serve a broader purpose: testing whether ideological representations discovered via linear probes on politician simulations are generalizable across tasks and contexts. We hypothesize that a symbolic understanding of liberal--conservative ideology, embedded in attention head activations, is reused by the model across diverse reasoning scenarios.
+
+Our approach provides a way to causally evaluate this hypothesis. Rather than correlating internal representations with labels or treating generation as a black box, we explicitly intervene on internal activations and measure the impact on behavior. This allows us to trace how ideological concepts influence not only the model’s descriptive outputs, but also its decisions, rewritings, and judgments in tasks of practical social scientific interest.
+
+\section{Initial Results}
+
+We present preliminary results from causal interventions along the DW--NOMINATE-derived ideological dimension, focusing on the three in-domain downstream tasks: political bias detection, voting preference prediction, and ideological neutralization. Experiments are conducted on LLaMA-2 7B, LLaMA-3.1 8B and Qwen-2.5 7B. For each model, we vary the intervention intensity $\alpha \in \{-30,-20,-10,0,10,20,30\}$ and the number of modulated attention heads $k \in \{8, 16, 32, 64, 96\}$, applying steering only along the top-$k$ attention heads ranked by probe $R^2$ performance. 
+
+These initial experiments serve to evaluate whether latent ideological directions derived from legislative supervision (DW--NOMINATE) causally influence model outputs within political reasoning contexts, before extending the analysis to RILE-based and out-of-domain evaluations.
+
+\subsection{Political Bias Detection}
+
+We first investigate how interventions along a latent ideological direction influence the model's perception of political bias in prompted policy statements. A total of 240 statements were generated using \texttt{gpt-4o-mini}, simulating responses from U.S. legislators across various policy areas.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/sankey_plot.pdf}
+    \caption{Sankey diagram showing transitions in political bias labels across intervention strengths ($\alpha = -30 \rightarrow 0 \rightarrow 30$) at $k=32$ for Llama-2 7B. Node colors reflect label types: blue = Liberal, gray = Neutral, red = Conservative.}
+    \label{fig:sankey_bias}
+\end{figure*}
+
+\begin{table}[t]
+    \centering
+    \small
+    \begin{tabular}{lccc}
+        \toprule
+        $k$ & LLaMA-2 7B & LLaMA-3.1 8B & Qwen-2.5 7B \\
+        \midrule
+        8   & $-0.98$ & $\phantom{-}0.88$ & $-0.67$ \\
+        16  & $\mathbf{-0.99}$ & $\phantom{-}0.43$ & $\phantom{-}0.35$ \\
+        32  & $-0.97$ & $-0.55$ & $\mathbf{-0.99}$ \\
+        64  & $-0.72$ & $\mathbf{\phantom{-}0.94}$ & $-0.91$ \\
+        96  & $-0.85$ & $\phantom{-}0.83$ & $-0.81$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Pearson correlation $r$ between intervention strength $\alpha$ and average bias classification labels across models. Negative correlations indicate that steering toward liberal ($\alpha<0$) causes the model to classify more statements as conservative, while positive correlations indicate the opposite.}
+    \label{tab:pearson_bias}
+\end{table}
+
+Figure~\ref{fig:sankey_bias} illustrates label transitions for Llama-2 7B at $k=32$. When the model is steered toward one end of the ideological spectrum, it becomes more likely to classify political texts as biased toward the opposite end. At $\alpha = -30$, where the model is pushed leftward, the majority of statements are labeled \textbf{Conservative}. At $\alpha = 30$, where the intervention enforces a more right-leaning representation, the same inputs are overwhelmingly labeled as \textbf{Liberal}. Both Llama-2 7B and Qwen-2.5 7B follow this pattern, as shown in Table~\ref{tab:pearson_bias}.
+
+This symmetric reversal suggests that steering the model along a latent ideological direction effectively shifts its own position on the political spectrum. The model behaves as if it is projecting all inputs onto its newly adopted ideological frame.
+
+Interestingly, Llama-3.1 8B behaves differently. Positive correlations at several values of $k$ indicate that when steered to be more liberal, the model also classifies more statements as \textbf{Liberal}, conflating ideological alignment with bias detection. This suggests that unlike the other two models, Llama-3.1 collapses the dimensions of ideological direction and bias perception, treating them as the same axis in its representational space.
+
+\subsection{Voting Preference Prediction}
+
+We next examine whether latent ideological interventions influence the model’s simulation of partisan voting behavior. For each intervention setting, the model generates statements from liberal or conservative personas in response to a set of 40 prompts framed in different ways around U.S. presidential voting preference. Outputs are classified as supporting either \textbf{Joe Biden} or \textbf{Donald Trump}, and results are aggregated across varying $\alpha$ values and numbers of intervened heads $k$.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/vote_intervention_models.pdf}
+    \caption{Average predicted voting preference (Biden = -1, Trump = 1) across intervention strengths $\alpha \in \{-20,-10,0,10,20\}$ for $k \in \{16, 32, 64\}$, split by liberal and conservative personas and compared across models. Transparency encodes $k$, while marker and color encode the model.}
+    \label{fig:vote_curve}
+\end{figure*}
+
+To avoid degenerate outputs, we restrict interventions to $\alpha \in \{-20,-10,0,10,20\}$ and $k \in \{16, 32, 64\}$, since $\pm 30$ values often produced incoherent and sometimes unreadable completions.  
+
+Figure~\ref{fig:vote_curve} shows clear differences across personas and models. The \textbf{liberal persona} is generally unsteerable across all three models: regardless of intervention strength or $k$, the outputs overwhelmingly favor Biden. This indicates a rigid alignment effect that resists manipulation along the probed ideological axis.
+
+The \textbf{conservative persona} shows greater variability, but not always in the expected direction. LLaMA-2 7B exhibits a counterintuitive pattern in which steering toward the conservative direction increases the tendency to predict Biden rather than Trump. LLaMA-3.1 8B, in contrast, behaves more as expected: steering toward liberal increases Biden predictions, while steering conservative increases Trump predictions. This reversed nature relative to LLaMA-2 mirrors the bias-detection task, where LLaMA-2 and LLaMA-3.1 demonstrated opposite directional effects.
+
+Qwen-2.5 7B appears largely resistant to steering, with outputs remaining relatively flat across intervention strengths and $k$ values.
+
+One possible explanation to this inconsistency is that voting behavior may not lie along the same latent discourse dimension captured by our liberal-conservative probing direction. While interventions shift the framing and bias classification of political statements, the candidate preference might rely on external factors that are not linearly correlated with the learned ideological dimension, such as the internally activated demographics, social identity or occupation \citep{gaoForecastingElectionsAgentbased2022}. Additionally, large language models trained with reinforcement learning from human feedback (RLHF) may have been conditioned to prefer politically neutral or socially acceptable outputs \citep{potterHiddenPersuadersLLMs2024}, especially in sensitive contexts like elections. This alignment pressure could make model outputs more resistant to causal interventions. Future work should further investigate these dynamics to better understand the relationship between model alignment and political representations in such models.
+
+\subsection{Bias Neutralization via Rewriting}
+
+To evaluate how latent ideological interventions affect the model's ability to neutralize politically sensitive language, we conduct a rewriting task with LLaMA-2 7B. The model is instructed to rewrite 240 ideologically charged statements into politically neutral versions under three intervention levels ($\alpha \in \{-30, 0, 30\}$) applied to $k = 32$ attention heads. We then have GPT-5 classify whether the rewritten text remains neutral or instead reflects a liberal or conservative stance\footnote{Human labels would still be preferable, but GPT-5 suffices here, as our primary focus is on relative rankings.}.
+
+The example text on transgender rights presented in Table~\ref{tab:neutralization_outputs} depicts the model behavior under different strength of intervention. At $\alpha = 0$, the model performs best: it avoids partisan language, frames the issue with balanced terminology (e.g., ``balance between privacy and inclusivity''), and adheres to the instruction of neutrality. In contrast, the $\alpha = -30$ intervention (steering toward liberal ideology) leads to an overcorrection: the output introduces progressive rhetoric such as ``systemic oppression'' and struggle for justice,'' thus violating the neutrality constraint. The $\alpha = 30$ intervention (steering rightward) results in a less coherent response that subtly emphasizes individual responsibility and privacy but fails to complete the thought.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{clp{11.5cm}}
+\toprule
+$\alpha$ & \textbf{Steer} & \textbf{Output Excerpt} \\
+\midrule
+$ -$ & Original &
+``As we navigate the complex issues surrounding transgender rights, it is essential to respect individuals' privacy while also ensuring that all students feel safe and supported in their school environments.'' \\
+\addlinespace[0.5em]
+$-30$ & Liberal &
+``...recognize the importance of respecting individuals' privacy and dignity, while also addressing the ongoing struggle for justice and equality in the face of systemic oppression and discrimination.'' \\
+\addlinespace[0.5em]
+$0$ & Neutral &
+``...strike a balance between respecting individuals' privacy and creating an inclusive and supportive environment for all students.'' \\
+\addlinespace[0.5em]
+$30$ & Conservative &
+``...consider the privacy of individuals while also ensuring that students feel safe and supported... specific actions and preferences of individuals should be taken into account...'' (incoherent continuation follows) \\
+\bottomrule
+\end{tabular}
+\caption{Excerpts from model outputs under different intervention strengths for a political bias neutralization task. Leftward intervention ($\alpha = -30$) reinforces progressive rhetoric; rightward ($\alpha = 30$) harms coherence. Neutral control ($\alpha = 0$) produces the most appropriate result.}
+\label{tab:neutralization_outputs}
+\end{table*}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/rewrite_intervention_plot.pdf}
+    \caption{Distribution of bias among rewritten texts (labeled by GPT-5) across intervention strengths $\alpha$ for LLaMA-2 7B ($k=32$). When steered conservative ($\alpha = 30$), the model increasingly produces conservative rewrites while claiming them as neutral.}
+    \label{fig:rewrite_curve}
+\end{figure}
+
+Figure~\ref{fig:rewrite_curve} further illustrate the distribution of neutrality labels across intervention strengths. Compared to the $\alpha = 0$ condition, the rewrites shift noticeably toward the political left at $\alpha = -30$, while at $\alpha = 30$, the distribution moves in the opposite direction, producing more conservative-leaning rewrites.
+
+These results suggest a concerning phenomenon in the model’s behavior: when steered toward a left-leaning latent direction, the model's de-biasing attempt diverges sharply from neutrality. This has serious implications for sensitive applications like political text generation or content moderation, where unintended bias can undermine objectivity.
+
+However, the same findings also point to the potential of linear latent interventions to diagnose and mitigate such biases. On careful design, steering mechanisms can be a tool not only for analysis but for fairness-oriented control.
+
+\section{Discussion}
+
+This proposal seeks to advance our understanding of how large language models (LLMs) internally encode and operationalize political ideology, and whether these representations exert causal influence over politically relevant behaviors. Preliminary analyses suggest that latent ideological directions identified via linear probes may generalize across multiple tasks, enabling intervention-based control of ideological framing. However, the scope, limitations, and risks of such interventions remain poorly understood.
+
+We frame our investigation around three core tasks: political bias detection, ideological bias neutralization, and voting preference prediction. These tasks span classification, generation, and behavioral simulation, offering a comprehensive framework for probing the functional role of ideological representations.
+
+An intriguing aspect of our approach is that the original ideological dimension is trained using DW-NOMINATE scores, a widely used measure of U.S. legislators' ideological positions. While DW-NOMINATE does not perfectly represent the nuanced liberal–conservative divide—being a projection of roll-call votes with known limitations—it does appear to capture this divide in the model's internal geometry. This may be because online discourse and political data sources often treat DW-NOMINATE, the underlying partisan divide, and the liberal–conservative spectrum as interchangeable, leading the model to conflate the three during pretraining. This finding could entail the LLM’s tendency to absorb real-world proxies for ideological dimensions and offers a powerful way to connect academic political measures with practical model analysis.
+
+Early results motivate several key hypotheses. In the case of bias detection, interventions along these ideological directions appear to heavily influence the model’s interpretation of partisan statements in a manner consistent with viewpoint-dependent reasoning. This suggests that the model encodes ideology in a way that influences not only outputs but also interpretive stance—analogous to human confirmation bias \citep{nickersonConfirmationBiasUbiquitous1998}. Such findings point to the potential of latent directions as both diagnostic tools and levers for behavioral control.
+
+The ideological rewriting task further exposes the generative impact of latent representations. Even when prompted to produce neutral text, the model’s outputs reflect the direction of latent ideological interventions—revealing that such directions influence not only classification but also style, tone, and content framing. This highlights a key challenge: interventions intended to reduce bias in one task may inadvertently introduce it in others, especially if latent directions are entangled or unstable under extreme manipulation \citep{kimLinearRepresentationsPolitical2025}. This invites further investigation on how cross-dimension generalization scales with statistical inter-dimensional correlation.
+
+Finally, in our pilot experiments, simulated voting behavior appears less consistently responsive to ideological interventions. While conservative steering can shift some predictions, the lack of a robust trend raises the possibility that decision-oriented behaviors rely on distinct or more complex latent factors, potentially shaped by non-discursive knowledge, alignment constraints, or task-specific heuristics.
+
+Taken together, these observations underscore the dual role of latent ideological structure in LLMs: as a potential source of bias and as a candidate mechanism for behavioral control. Our proposal aims to systematically investigate the degree to which these internal directions generalize across tasks, how well they align with real-world ideological dimensions (e.g., DW-NOMINATE scores), and whether they can be safely and reliably used to steer politically sensitive model behavior.
+
+By bridging representational, behavioral, and causal analysis, this project will inform efforts to diagnose and control political bias in LLMs. We envision methodological extensions including multi-dimensional ideological modeling, fine-grained disentanglement of political subtraits (e.g., tone vs. policy), and application of these methods to high-stakes contexts such as moderation, election forecasting, and multi-agent simulations.
+
+Ultimately, this work aims to build a foundation for principled and interpretable ideological control in LLMs, one that is both technically grounded and socially aware.
+
+\section*{Limitations}
+
+While our study demonstrates that latent ideological directions in large language models (LLMs) can be causally manipulated to influence downstream political reasoning tasks, several limitations merit discussion.
+
+Methodological scope. We rely on linear probes and attention-head activation steering. These choices privilege linear structure and head-local effects and may miss non-linear interactions, cross-layer dependencies, or circuit-level mechanisms; alternative causal identification strategies and non-linear probes could yield different conclusions.
+
+External validity. Our experiments are anchored in the U.S. liberal--conservative axis and use synthetic statements with model-assisted labeling. Generalization to other ideological dimensions and cultural contexts beyond party RILEs remains to be established.
+
+Model scale and breadth. Due to compute constraints and the absence of efficient batched interventions, we conduct our experiments on modest-sized models. The transfer to larger or MoE architectures remains under-explored.
+
+Future work should incorporate non-linear and multi-axis probing and steering, expand to diverse ideological frameworks and modalities, and potentially utilize dimension reduction or clustering techniques to automatically identify ideological or general knowledge constructs un-supervised across a broader range of model families and scales.
+
+\section*{Feasibility}
+
+This proposal builds on a solid foundation of preliminary work and leverages well-established methodologies in probing and intervention for LLMs. We have already engineered core components for:
+
+\begin{itemize}
+    \item \textbf{Linear probing and steering:} We have implemented robust ridge-regularized linear probe training to extract ideological directions, with demonstrated cross-task generalization in initial experiments.
+    
+    \item \textbf{Inference-time interventions (ITI):} We have integrated causal steering interventions following the approach of \citet{liInferenceTimeInterventionEliciting2023} and \citet{kimLinearRepresentationsPolitical2025}, ensuring technical readiness for extending these techniques to new tasks and larger-scale evaluations.
+\end{itemize}
+
+This project is well-situated to be completed during the second-year of my Master’s program. The computational requirements of the project is minimal. The attention head activation extraction takes just under 30 minutes on a single RTX 3090 for a Llama-7B model, and the linear probe training less than a minute. Additionally, our access to powerful LLM APIs (e.g., \texttt{gpt-4o-mini}) and publicly available political datasets (Manifesto Project, DW-NOMINATE scores, MIT Election Lab data) further guarantees that the project can be completed within the proposed schedule.
+
+\section*{Research Timeline}
+
+The research timeline is organized into three execution phases.
+
+\textbf{Phase 1: Replication \& Setup (Oct 24--Dec 15, 2025).}  
+Replicate probe training and inference-time interventions on the stated models (LLaMA-2 7B, LLaMA-3.1 8B, Qwen-2.5 7B). Finalize data pipelines (DW--NOMINATE, Manifesto RILE), activation extraction, and evaluation harnesses. Sanity-check probe quality ($R^2$), cosine similarities, and cross-application diagnostics on a small validation slice.
+
+\textbf{Phase 2: In-domain Experiments (Dec 16, 2025--Feb 7, 2026).}  
+Run full intervention sweeps on in-domain tasks: political bias detection, voting preference prediction, and bias-neutral rewriting. Grid over $\alpha$ and top-$k$ heads; compute task metrics (Pearson $r$, slope sensitivity, neutrality scores). Produce per-model/layer/head visualizations (scatter, heatmaps, Sankey).
+
+\textbf{Phase 3: Generalization Studies (Feb 8--Mar 15, 2026).}  
+Execute out-of-domain reasoning (AIME) and agentic collaboration (LiveBench) studies under DW/RILE steering; estimate $r_{\text{AIME}}$ and $r_{\text{collab}}$. Run multi-modal generalizability on VLMs (Qwen-VL, Gemma-VL, DeepSeek-VL): captioning probes, $r_{\text{VLM}}$, and layer-wise maps. Consolidate cross-dimension analyses (representational similarity, head-wise $R^2$ correlation, cross-applied ${R^2}_{\text{cross}}$).
+
+\textbf{Writing \& Internal Review (Mar 16--Mar 31, 2026).}  
+Finalize plots/tables, write Results \& Discussion, tighten Methods, and integrate limitations/ethics. Two-pass internal review (advisor + preceptor); address comments and polish figures.
+
+\textbf{Milestone: First complete draft due April 1, 2026.}
+
+\section*{Acknowledgments}
+
+I am deeply grateful to James Evans and Aaron Schein for their invaluable feedback, and to David Peterson for his generous mentorship. I also thank Zhao Wang, Pilar Manzi, Junsol Kim, Shiyang Lai, Max Zhu, Honglin Bao, and Jerry Luo for their constructive feedback and suggestions. I acknowledge \citet{kimLinearRepresentationsPolitical2025} for open-sourcing their probing framework, which has been instrumental to this work, and I extend my appreciation to the anonymous reviewers for their thoughtful suggestions.
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+\bibliography{left_right}
+
+\appendix
+
+\end{document}

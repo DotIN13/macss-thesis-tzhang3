@@ -1,0 +1,36 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{parskip}
+\usepackage{hyperref}
+
+\begin{document}
+
+\noindent
+Dear reviewers and editors,
+
+\bigskip
+
+Thank you for your insightful and detailed feedback on my research proposal, \emph{“Probing Political Ideology in Large Language Models: How Latent Political Representations Generalize Across Tasks.”} Your constructive comments helped me identify areas for improvement, leading to substantial revisions that better articulate the project’s motivation, methodology, and contributions.
+
+\textbf{Clarifications on motivations and real-world risks.} In response to comments from reviews about clarifying the real-world risks and motivation, I have strengthened the introduction and discussion sections to explicitly outline the practical consequences of ideological bias in LLMs. I now emphasize that unchecked ideological leanings in politically sensitive applications, such as decision support or content moderation, could skew recommendations, reinforce echo chambers, or lead to asymmetrical censorship.
+
+\textbf{Justifications for DW-NOMINATE.} Reviewers also raised concerns about the reliance on DW-NOMINATE scores and their limitations as ideological anchors. In the revised proposal, I explicitly acknowledge that DW-NOMINATE is an imperfect but practical first-order approximation of the U.S. liberal--conservative axis. I discuss criticisms such as its reliance on roll-call data and how it may not fully capture ideological nuance, particularly for extreme or agenda-setting lawmakers.
+
+I also highlight that while DW-NOMINATE remains a useful starting point. And it is interesting and worth investigating why DW-NOMINATE score, though imperfect, is internalized by language models as inter-changeable with the actual liberal-conservative dimension (as exemplified in Kim et al.'s experiment results where the DW-NOMINATE dimension can be readily applied to explain the variance of activations extracted from liberal/conservative media outlet discourse generation).
+
+\textbf{Quantitative methodology and evaluation.} To address feedback about methodological clarity, especially around how “neutral” was defined and validated in rewriting and bias detection tasks, I have clarified that neutral rewrites are evaluated using external bias classifiers rather than relying solely on subjective or qualitative judgments. I added a more explicit explanation of these classifiers and described how quantitative metrics (probability shifts, slope $\frac{\partial P}{\partial \alpha}$, and Pearson correlation coefficients) systematically track the impact of interventions. I also included more explicit references to statistical evaluation tools, such as permutation tests for cosine similarity and inter-task Pearson correlations, to highlight the robustness of the quantitative analysis.
+
+\textbf{Improved discussion and limitations.} The reviews suggested expanding the limitations section and proposing more concrete future directions. I have revised the limitations section to highlight three key constraints: the linearity assumption of probing, the U.S.-centric ideological focus, and potential distortions from RLHF alignment.
+
+\textbf{Enhancing proposal structure.} To address the comment about presentation and structure, I included a more explicit timeline section and feasibility analysis to demonstrate that this project is well-suited to a Master’s thesis scope, with an emphasis on practical implementation (noting that data generation and linear probe training are computationally efficient).
+
+Overall, these revisions were informed directly by your detailed and thoughtful comments. I believe the updated proposal is clearer, more robust, and better situated to address the interdisciplinary nature of this important research area. Thank you again for your time and feedback, which were invaluable in refining this work.
+
+\bigskip
+
+Sincerely, \\
+Tianyi Zhang \\
+The University of Chicago \\
+\texttt{tzhang3@uchicago.edu}
+
+\end{document}

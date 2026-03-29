@@ -1,0 +1,13 @@
+{
+  "name": "macs-30200",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/macs30200-s23/course-project-DotIN13.git",
+  "author": "DotIN13 <dotin13@126.com>",
+  "license": "MIT",
+  "packageManager": "yarn@4.9.1",
+  "private": true,
+  "workspaces": [
+    "slides"
+  ]
+}

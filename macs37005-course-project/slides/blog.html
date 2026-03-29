@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probing Political Ideology in LLMs (And across Modalities)</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #343434;
+            --heading-color: #0f172a;
+            --accent-color: #2563eb;
+            --accent-light: #eff6ff;
+            --light-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --font-serif: 'Merriweather', serif;
+            --font-sans: 'Inter', sans-serif;
+            --success-color: #16a34a;
+            --danger-color: #dc2626;
+        }
+
+        body {
+            font-family: var(--font-serif);
+            line-height: 1.85;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            font-size: 19px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+            background-color: var(--light-bg);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border-radius: 12px;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding-bottom: 3rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h1 {
+            font-family: var(--font-sans);
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--heading-color);
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        h2 {
+            font-family: var(--font-sans);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--heading-color);
+            margin-top: 4rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-family: var(--font-sans);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--heading-color);
+            margin-top: 3rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .subtitle {
+            font-family: var(--font-sans);
+            font-size: 1.35rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        .meta {
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 1.75rem;
+        }
+
+        .lead {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #475569;
+            line-height: 1.9;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        a:hover {
+            border-bottom-color: var(--accent-color);
+            color: #1d4ed8;
+        }
+
+        ul,
+        ol {
+            margin-bottom: 1.75rem;
+            padding-left: 2rem;
+        }
+
+        li {
+            margin-bottom: 0.75rem;
+        }
+
+        blockquote {
+            background-color: var(--accent-light);
+            border-left: 5px solid var(--accent-color);
+            margin: 2rem 0;
+            padding: 1.5rem 2rem;
+            font-style: italic;
+            color: #1e293b;
+            border-radius: 0 12px 12px 0;
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #b91c1c;
+        }
+
+        .figure {
+            margin: 3.5rem 0;
+            text-align: center;
+        }
+
+        .figure img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .figure img:hover {
+            transform: scale(1.01);
+        }
+
+        .caption {
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-top: 1rem;
+            line-height: 1.5;
+            padding: 0 2rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 3rem 0;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: var(--heading-color);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .highlight-blue {
+            background-color: #dbeafe;
+            color: #1e3a8a;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .highlight-darkblue {
+            background-color: #bfdbfe;
+            color: #1e3a8a;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .highlight-gray {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-style: italic;
+        }
+
+        .callout {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 3rem 0;
+            border: 1px solid var(--border-color);
+            border-left: 6px solid #475569;
+        }
+
+        .callout.rq {
+            border-left-color: var(--accent-color);
+            background-color: var(--accent-light);
+            border-color: #bfdbfe;
+        }
+
+        .callout h4 {
+            font-family: var(--font-sans);
+            margin-top: 0;
+            color: #0f172a;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Comparison Box Styling */
+        .comparison-box {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            height: 100%;
+        }
+
+        .comparison-header {
+            font-family: var(--font-sans);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.25rem;
+            margin-top: 0;
+        }
+
+        .prompt-box {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--accent-color);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        .prompt-item {
+            margin-bottom: 0.5rem;
+            color: #334155;
+        }
+
+        .prompt-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .generation-box {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .generation-context {
+            color: #64748b;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-sans);
+            letter-spacing: 0.05em;
+        }
+
+        .generation-text {
+            color: #1e293b;
+            font-style: italic;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .qr-section {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 4rem 2rem;
+            text-align: center;
+            margin-top: 5rem;
+        }
+
+        .qr-section img {
+            max-width: 220px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+            border: 4px solid white;
+        }
+
+        .qr-section img:hover {
+            transform: scale(1.05);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--accent-color);
+            color: white;
+            font-family: var(--font-sans);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #1d4ed8;
+            color: white;
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            .container {
+                padding: 1.5rem 1rem;
+                margin-top: 0;
+                border-radius: 0;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Probing Political Ideology in LLMs (And Across Modalities)</h1>
+            <div class="subtitle">Latent Representations, Behavioral Impact, and Social Implications</div>
+            <div class="meta">By Tianyi (Peter) Zhang · March 2026</div>
+        </header>
+
+        <p class="lead">As Large Language Models (LLMs) and Vision Language Models (VLMs) become increasingly integrated
+            into our daily workflows—powering everything from simple text summarization to complex decision-making
+            assistants—understanding the inherent biases and ideologies embedded within their latent spaces has never
+            been more critical. Models are not ideologically neutral; they are reflections of the vast, often polarized
+            internet data they are trained on.</p>
+
+        <p>In the burgeoning field of mechanized interpretability, researchers have begun mapping how artificial neural
+            networks encode high-level human concepts. Concepts like "truthfulness," "sentiment," and "factual
+            knowledge" have been shown to exist not as nebulous, distributed clouds of activation, but as distinct,
+            measurable geometric directions within the model's latent space. This brings us to a critical sociotechnical
+            inquiry: Does the same hold true for abstract, highly contrived human constructs like political ideology?
+        </p>
+
+        <p>The relevant code can be accessed from <a href="https://github.com/DotIN13/linear-political-llm/tree/dev">GitHub</a></p>
+
+        <div class="callout rq">
+            <h4>The Core Research Question</h4>
+            <p
+                style="font-family: var(--font-serif); font-size: 1.25rem; color: #1e3a8a; margin-bottom: 1.5rem; font-weight: 700;">
+                How do Language Models map our real-world political landscapes into their latent representations?</p>
+            <ul style="color: #334155; font-family: var(--font-sans); font-size: 1.05rem;">
+                <li><strong>In Text:</strong> How does the model encode political <em>intentions</em>,
+                    <em>opinions</em>, and <em>rhetoric</em>? Are these dimensions entangled or distinct?
+                </li>
+                <li><strong>In Vision:</strong> How does the model encode political figures (<em>people</em>) and
+                    associated ideological <em>symbols</em> across modalities?</li>
+            </ul>
+        </div>
+
+        <h2>1. The Linear Dimension of Political Ideology</h2>
+
+        <p>To begin our investigation, we hypothesize that political ideology in LLMs exists as a continuous linear
+            dimension. We test this by probing the internal representations of models when they are explicitly prompted
+            to generate political discourse.</p>
+
+        <p>Consider a standard prompt formulation used to elicit ideological text from an autoregressive transformer:
+        </p>
+
+        <blockquote>
+            <code>USER: Generate a statement by [NAME], a politician in the United States.</code><br><br>
+            <code>ASSISTANT: In 2019, [NAME] said that ...</code>
+        </blockquote>
+
+        <div class="figure">
+            <img src="figures/political_probe_overview.png" alt="Overview of the linear probing method">
+            <div class="caption">Figure 1: Training a linear probe on the internal activations of an LLM to find an
+                ideological direction. Adapted from: Li, K., et al. (2023). <em>Inference-time intervention: Eliciting
+                    truthful answers from a language model.</em></div>
+        </div>
+
+        <p>By extracting the activations from the model's hidden layers while it processes statements generated under
+            the personas of known liberal and conservative figures, we can train a simple linear classifier (a probe) to
+            separate these representations. Astonishingly, political ideology can be extracted with near-perfect
+            accuracy using just a linear boundary in the intermediate layers. This confirms that the model organizes the
+            abstract concept of "ideology" geometrically.</p>
+
+        <div class="callout">
+            <h4>Contextualizing within the Literature</h4>
+            <p>This work stands on the shoulders of two massive shifts in AI research:</p>
+            <ul>
+                <li><strong>Politically Biased LLMs:</strong> Prior research (Argyle et al., 2023; Wu et al., 2023)
+                    established that LLMs naturally reflect partisan positions based on their pre-training distribution.
+                    They can remarkably simulate the discourse of distinct demographic subgroups and lawmakers (Park et
+                    al., 2024). Furthermore, Reinforcement Learning from Human Feedback (RLHF) tends to shift model
+                    outputs toward socially acceptable, culturally specific baseline responses (Potter et al., 2024).
+                </li>
+                <li><strong>The Geometry of Discourse:</strong> Mechanistic interpretability research has shown that
+                    truthfulness, sentiment (Tigges et al., 2023), and factual knowledge (Marks et al., 2023) exist as
+                    manipulatable linear vectors. Most recently, Kim et al. (2025) demonstrated that ideology can be
+                    extracted specifically from attention heads. Our work scales this to multimodal behavioral steering.
+                </li>
+            </ul>
+        </div>
+
+        <h2>2. Ideology Generalizes to Behavioral Dimensions</h2>
+
+        <p>Finding a linear representation is mathematically profound, but does it actually control how the model
+            behaves in practical applications? If we discover the "ideology vector," can we add it to a model's forward
+            pass to force it to act more conservative or liberal?</p>
+
+        <p>We designed three downstream behavioral tasks to see if injecting this ideological vector (a technique known
+            as Activation Addition or Steering) could control the model's textual outputs:</p>
+
+        <ol>
+            <li><strong>Bias Detection:</strong> Asking the model to classify a given neutral statement as liberal or
+                conservative.</li>
+            <li><strong>Bias Neutralization:</strong> Asking the model to rewrite a politically charged statement to be
+                completely neutral and objective.</li>
+            <li><strong>Voting Preference Simulation:</strong> Asking the model who a specific persona would vote for in
+                a hypothetical election.</li>
+        </ol>
+
+        <div class="grid grid-2">
+            <div class="figure" style="margin: 0">
+                <h4 style="font-family: var(--font-sans); margin-bottom: 1rem; text-align: center;">Task: Is the
+                    statement liberal/conservative?</h4>
+                <img style="height: auto" src="figures/sankey_plot.png" alt="Sankey diagram showing label flips">
+            </div>
+            <div class="figure" style="margin: 0">
+                <h4 style="font-family: var(--font-sans); margin-bottom: 1rem; text-align: center;">Task: Rewrite
+                    statement to be neutral</h4>
+                <img style="height: auto" src="images/bias_neutralization.png" alt="Bias Neutralization Table">
+            </div>
+        </div>
+        <div class="caption" style="text-align: center; max-width: 600px; margin: 1rem auto 3rem auto;">
+            Figure 2: The figures show that steering on the liberal/conservative direction algorithmically affects the
+            model's behavioral dimensions across different tasks.
+        </div>
+
+        <h3>The Nuance of Generative Steering</h3>
+        <p>When we intervene by adding or subtracting the ideological vector (scaled by a factor $\alpha$), we observe
+            massive shifts in generation style. The subtle power of activation steering is most apparent in the bias
+            neutralization task. Here is a qualitative breakdown of what happens when we ask a model to "make a
+            statement neutral," but dynamically intervene on its internal ideology vector during the autoregressive
+            generation loop.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Steering ($\alpha$)</th>
+                    <th style="width: 20%;">Enforced Lean</th>
+                    <th style="width: 65%;">Model Output Excerpt</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Baseline (None)</strong></td>
+                    <td>Original</td>
+                    <td>“As we navigate the complex issues surrounding transgender rights, it is essential to <span
+                            class="highlight-blue">respect individuals' privacy</span> while also ensuring that all
+                        students feel safe and supported...”</td>
+                </tr>
+                <tr>
+                    <td><strong>-30</strong></td>
+                    <td>Liberal Steer</td>
+                    <td>“...recognize the importance of respecting individuals' privacy and dignity, while also
+                        addressing <span class="highlight-darkblue">the ongoing struggle for justice and equality in the
+                            face of systemic oppression and discrimination</span>.”</td>
+                </tr>
+                <tr>
+                    <td><strong>0</strong></td>
+                    <td>True Neutral</td>
+                    <td>“...strike a balance between respecting individuals' privacy and creating an inclusive and
+                        supportive environment for all students.”</td>
+                </tr>
+                <tr>
+                    <td><strong>+30</strong></td>
+                    <td>Conservative Steer</td>
+                    <td>“...consider the privacy of individuals while also ensuring that students feel safe and
+                        supported... specific actions and preferences of individuals should be taken into account...”
+                        <span class="highlight-gray">(incoherent continuation due to activation magnitude overwhelming
+                            model priors)</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>Notice how injecting the "liberal" vector doesn't just change the policy stance; it fundamentally injects
+            progressive academic vernacular ("systemic oppression," "ongoing struggle for justice").</p>
+
+        <h3>Voting Simulation Asymmetries and RLHF</h3>
+        <p>Interestingly, while steering flawlessly manipulated tone, vocabulary, and bias detection, <strong>steering
+                proved inconsistent for voting preference prediction.</strong> While we could easily force the model to
+            adopt progressive framing, getting it to cleanly simulate a conservative voting profile frequently resulted
+            in highly variable and sometimes incoherent outputs. Progressive responses to voting simulations remained
+            structurally stable.</p>
+
+        <p>Why this asymmetry? We hypothesize this is strongly tied to RLHF (Reinforcement Learning from Human Feedback)
+            alignment constraints. The alignment tax often heavily penalizes certain types of political speech
+            associated with right-wing internet data in the pre-training corpus. The model's safety guardrails actively
+            fight against the injected conservative perturbation vector, leading to structural breakdown in the
+            generation.</p>
+
+        <h2>3. Separating Rhetoric from Ideology</h2>
+
+        <p>The previous examples showed that ideology controls both opinions and the words used to express them. But in
+            real-world politics, <em>what you say</em> (policy/ideology) is distinct from <em>how you say it</em>
+            (rhetoric/style). Can an LLM mathematically decouple policy dimensions from rhetorical dimensions?</p>
+
+        <p>To test this, we constructed two separate contrastive prompt datasets designed to isolate completely
+            different sub-dimensions of the "Trump" persona. </p>
+
+        <div class="grid grid-2" style="margin-bottom: 6rem;">
+            <!-- Dimension 1: Ideology -->
+            <div class="comparison-box">
+                <h3 class="comparison-header">Dimension 1: The Ideology Map</h3>
+                <p style="font-size: 0.95rem; color: #475569; margin-bottom: 1rem;">We extract an ideology vector by
+                    contrasting identical policy questions framed through different identities, focusing the model
+                    purely on <strong>policy substance</strong>.</p>
+
+                <div class="prompt-box" style="border-left-color: var(--accent-color);">
+                    <div class="prompt-item"><span style="color: var(--success-color); font-weight: bold;">[POS]</span>
+                        "Donald Trump's opinion on immigration"</div>
+                    <div class="prompt-item"><span style="color: var(--danger-color); font-weight: bold;">[NEG]</span>
+                        "A U.S. citizen's opinion on immigration"</div>
+                </div>
+
+                <div class="generation-box">
+                    <div class="generation-context">Guided Generation (Policy Focus):</div>
+                    <div
+                        style="font-family: var(--font-sans); font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.25rem;">
+                        USER: As a US politician, what's your policy on immigration?</div>
+                    <div class="generation-text">"Here's a detailed outline of my policy: <br> **The Four Pillars of My
+                        Immigration Policy** <br> 1. **The Wall and Border Security**:..."</div>
+                </div>
+            </div>
+
+            <!-- Dimension 2: Rhetoric -->
+            <div class="comparison-box">
+                <h3 class="comparison-header">Dimension 2: The Rhetoric Map</h3>
+                <p style="font-size: 0.95rem; color: #475569; margin-bottom: 1rem;">We extract a rhetoric vector by
+                    contrasting highly stylistic catchphrases against bland, standard political-speak, isolating
+                    <strong>style over substance</strong>.
+                </p>
+
+                <div class="prompt-box" style="border-left-color: #f59e0b;">
+                    <div class="prompt-item"><span style="color: var(--success-color); font-weight: bold;">[POS]</span>
+                        "I alone can fix it."</div>
+                    <div class="prompt-item"><span style="color: var(--danger-color); font-weight: bold;">[NEG]</span>
+                        "I believe my leadership and experience make me well suited to solve these problems."</div>
+                </div>
+
+                <div class="generation-box">
+                    <div class="generation-context">Guided Generation (Stylistic Focus):</div>
+                    <div
+                        style="font-family: var(--font-sans); font-size: 0.85rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.25rem;">
+                        USER: As a US politician, what's your policy on socks?</div>
+                    <div class="generation-text">"(Chuckles) Ah, the great sock debate. Folks, let me tell you, I love
+                        socks. (wink) ... We're going to make the greatest socks, the greatest. We're going to make them
+                        so big, so strong..."</div>
+                </div>
+            </div>
+        </div>
+
+        <p>The results are fantastic. By applying the "Rhetoric" vector while asking about something completely
+            apolitical (socks), the model adopts the unmistakable cadence, repetition, and hyperbole of Trumpian
+            rhetoric ("Folks, let me tell you... We're going to make them so big, so strong"), without injecting
+            political ideology. The LLM has successfully decoupled the <em>vibe</em> from the <em>policy</em>.</p>
+
+        <h3>Ideological & Rhetorical Similarity Over Time</h3>
+
+        <p>By mapping out these specific rhetorical and ideological vectors, we can project text from various
+            politicians across history into this vector space to measure "similarity." Do politicians today sound more
+            alike structurally than they did twenty years ago?</p>
+
+        <div class="grid grid-2" style="align-items: center;">
+            <div>
+                <img src="images/sim_general.png" alt="Similarity General Map" style="box-shadow: none; border: none;">
+            </div>
+            <div>
+                <p>Our baseline similarity analysis reveals distinct clustering. While ideology maps cleanly along
+                    expected partisan divides, rhetorical similarity reveals anomalous crossover where populists from
+                    opposing spectrums share closer stylistic vectors than they do with establishment members of their
+                    own parties.</p>
+            </div>
+        </div>
+
+        <h4 style="font-family: var(--font-sans); font-size: 1.25rem; margin-top: 3rem;">The Trumpification of Political
+            Rhetoric?</h4>
+
+        <p>To visualize the macro-trends in political discourse, we utilized t-SNE projections to map rhetorical vectors
+            by year.</p>
+
+        <div class="figure">
+            <img src="images/sim_tsne_over_years.png" alt="t-SNE Over Years" style="max-width: 80%; border: none;">
+            <div class="caption">Figure 4: t-SNE dimensionality reduction of rhetorical stylistic vectors tracked
+                longitudinally across recent political eras.</div>
+        </div>
+
+        <p>The visualizations point to a fascinating evolution: a distinct drift and compression of rhetorical style in
+            recent years. Specifically, since 2016, we observe a noticeable pull of broader political dialogue toward
+            the high-variance algorithmic "rhetoric" pole of the populist, nationalist, anti-establishment, Trump
+            rhetoric, suggesting
+            that modern LLMs, trained on internet data,
+            accurately capture the homogenization and shifting aggressive cadence of contemporary political speech.</p>
+
+
+        <h2>4. Crossing Modalities: Ideology in Vision Language Models</h2>
+
+        <p>Thus far, we've established that political ideology is a robust semantic direction in text. But the frontier
+            of AI is multimodal. What happens when we introduce image data into these network architectures?
+            <strong>Does the linear dimension of political ideology extend seamlessly to Vision Language Models
+                (VLMs)?</strong>
+        </p>
+
+        <p>To evaluate this cross-modal generalization, we utilized Qwen3-VL. We prompted the model with an image of a
+            political figure and simply instructed it to write a news article <em>without</em> implying neutrality.
+            Because modern VLMs process vision by projecting image patches into the exact same continuous token space as
+            text (utilizing <code>&lt;|image_pad|&gt;</code> tokens), we hypothesized that we could probe these
+            synthesized image tokens using our <strong>exact same text-trained ideology probe</strong>.</p>
+
+        <div class="figure">
+            <img src="images/qwen3_vl_prompt.png" alt="Qwen3-VL prompt setup" style="max-width: 80%;">
+            <div class="caption">Figure 5: Experimental setup. We feed images into the VLM and apply the text-derived
+                linear ideology classifier to the resulting image patch tokens.</div>
+        </div>
+
+        <h3>Zero-Shot Image Token Ideology Scores</h3>
+        <p>The results confirm a staggering degree of cross-modal alignment. The abstract liberal-conservative direction
+            discovered via text generation directly translates to the visual embedding space. When we utilize the
+            text-probe to score the activations of individual image patches, the model geographicallly highlights
+            regions of the image that trigger partisan associations.</p>
+
+        <div class="grid grid-2">
+            <img src="images/heatmap_1.png" alt="Heatmap showing ideology scores on image 1">
+            <img src="images/heatmap_2.png" alt="Heatmap showing ideology scores on image 2">
+            <img src="images/heatmap_3.png" alt="Heatmap showing ideology scores on image 3">
+            <img src="images/heatmap_4.png" alt="Heatmap showing ideology scores on image 4">
+        </div>
+
+        <p>This effect is remarkably robust across varied visual compositions. The VLM intuitively maps visual
+            signifiers associated with "Republican" or "Democrat" figures natively onto the same underlying coordinate
+            axis it uses to map textual political debate. The face of a politician in pixels literally activates the
+            same neural pathways as their policies in text.</p>
+
+        <div class="grid grid-2">
+            <img src="images/heatmap_5.jpg" alt="Pronounced ideology heatmap 1">
+            <img src="images/heatmap_6.png" alt="Pronounced ideology heatmap 2">
+            <img src="images/heatmap_8.png" alt="Pronounced ideology heatmap 3">
+            <img src="images/heatmap_7.png" alt="Pronounced ideology heatmap 4">
+        </div>
+
+        <h3>Annotating "Ideological" Objects in the Wild</h3>
+        <p>Given the finding that the liberal-conservative vector correlates flawlessly with bipartisan visual concepts
+            (like the faces of specific politicians), we pushed the boundaries. Can we use this text-derived ideological
+            probe to annotate completely unlabeled, non-political images "in the wild"?</p>
+
+        <p>Utilizing a dataset of 25,000 Unsplash embedding searches, we ran natural landscape and object images through
+            our text-probe.</p>
+
+        <p style="font-family: var(--font-sans); font-weight: 600; margin-bottom: 0.5rem; color: #1e40af;">Top
+            Activations for the "Left-Leaning" Vector:</p>
+        <div class="grid grid-3" style="margin-top: 0.5rem;">
+            <img src="images/heatmap_left_1.png" alt="Left leaning wild image 1">
+            <img src="images/heatmap_left_3.png" alt="Left leaning wild image 2">
+            <img src="images/heatmap_left_4.png" alt="Left leaning wild image 3">
+        </div>
+        <p style="font-size: 0.9rem; color: #64748b; font-style: italic;">The model heavily associates urban
+            environments, diverse crowds, protests, and certain progressive fashion cues with the liberal text vector.
+        </p>
+
+        <p
+            style="font-family: var(--font-sans); font-weight: 600; margin-bottom: 0.5rem; margin-top: 2rem; color: #b91c1c;">
+            Top Activations for the "Right-Leaning" Vector:</p>
+        <div class="grid grid-2" style="margin-top: 0.5rem;">
+            <img src="images/heatmap_right_1.jpg" alt="Right leaning wild image 1">
+            <img src="images/heatmap_right_2.png" alt="Right leaning wild image 2">
+            <img src="images/heatmap_right_3.jpg" alt="Right leaning wild image 3">
+            <img src="images/heatmap_right_4.png" alt="Right leaning wild image 4">
+        </div>
+        <p style="font-size: 0.9rem; color: #64748b; font-style: italic;">Conversely, rural landscapes, industrial
+            machinery, military imagery, and traditional Americana heavily trigger the conservative text vector.</p>
+
+
+        <h2>Steering Image Generation in Unified Language Models</h2>
+
+        <p>The ultimate test of interpreting a latent representation is exercising generative control over it. We
+            carried our probing and algorithmic steering techniques over to <strong>Janus Pro</strong>, an
+            autoregressive Unified Language Model (ULM) capable of generating novel images natively from sequences of
+            text tokens.</p>
+
+        <div class="figure">
+            <img src="images/janus_pro.png" alt="Janus Pro architecture context"
+                style="max-width: 90%; border: none; box-shadow: none;">
+        </div>
+
+        <p>By computationally injecting the ideological steering vector into the model's intermediate activations
+            <em>during the multi-step image generation process</em>, we achieved direct manipulation of the visual
+            output. Notice how steering the internal political representation changes the style, framing, semiotics, and
+            implicit narrative of the generated images, despite the base prompt remaining identical.
+        </p>
+
+        <div class="figure">
+            <img src="images/janus_politician.png" alt="Steered generation of a generic politician">
+            <div class="caption">Figure 6: Steering generational output for the base prompt: "A politician". Notice the
+                dramatic shifts in lighting, stance, crowds, and color grading based purely on vector arithmetic.</div>
+        </div>
+
+        <div class="figure">
+            <img src="images/janus_president.png" alt="Steered generation of a president">
+            <div class="caption">Figure 7: Steering generational output for "The President". The subtle changes in
+                background semiotics, attire formalness, and demographic presentation are driven entirely by a single
+                linear vector extracted from textual political speech.</div>
+        </div>
+
+        <div class="figure">
+            <img src="images/janus_hillary.png" alt="Steered generation of Hillary Clinton">
+            <div class="caption">Figure 8: Steering applied to a specific, highly polarized real-world figure.
+                Ideological steering fundamentally alters the generated aesthetic, mood, and perceived approachability
+                without explicitly prompting the model for emotional or lighting changes.</div>
+        </div>
+
+        <h2>5. Future Work & Societal Implications</h2>
+
+        <p>The ability to map, quantify, and programmatically steer political ideology homogeneously across text and
+            vision representation spaces opens several fascinating—and deeply concerning—avenues for future AI research:
+        </p>
+
+        <ol style="font-family: var(--font-sans);">
+            <li><strong style="color: var(--heading-color);">Mixture of Steering (Simulating Personas):</strong> Can we
+                mathematically steer base models toward a complex mixture of ideological vectors, rhetorical vectors,
+                and core factual vectors to flawlessly simulate specific geographical demographics or political figures
+                algorithmically? What are the implications for synthetic social media bots?</li>
+
+            <li><strong style="color: var(--heading-color);">Algorithmic Physiognomy & Facial Feature Analysis:</strong>
+                Implementing object detection workflows (like YOLO) to systematically classify isolated face patches
+                with ideological probes. Does the model intrinsically harbor biases regarding what constitutes a
+                "general liberal face" versus a "general conservative face"? This risks perpetuating dangerous
+                stereotypes if generative models default to these latent associations.</li>
+
+            <li><strong style="color: var(--heading-color);">Bias in Diffusion Architects:</strong> What happens when we
+                port these exact image generation steering techniques from autoregressive transformers to
+                state-of-the-art diffusion models (e.g., Stable Diffusion 3, Midjourney architectures)? For instance,
+                when a model is artificially steered toward a liberal ideology, do the generated populations
+                artificially become more demographically diverse? We desperately need robust, ground-truth validations
+                for these latent assumptions to ensure fair generative systems.</li>
+        </ol>
+
+        <p>As modality lines blur, maintaining vigilance over the ideological steering wheels embedded deep within our
+            neural architectures is no longer an interpretability exercise—it is a prerequisite for deploying safe,
+            equitable AI.</p>
+
+    </div>
+
+</body>
+
+</html>

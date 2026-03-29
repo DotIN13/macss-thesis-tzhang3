@@ -1,0 +1,10 @@
+Academic Thesis Requirements
+
+Your Academic MA thesis will be an original paper, approximating the format and rigor of an academic journal article. Most theses will be around 30-50 pages long, but depending on the field and the content, your MA theses might be somewhat shorter or longer. Your making focus should be on the content, not the length: theses that we consider 'too short' are underdeveloped, and those that we deem 'too long' lack focus and overwhelm the reader with unnecessary information.
+
+You can use everything you’ve learned in MACS 30200 Perspectives on Computational Research or other courses you've taken to guide your writing process. The final paper, however, should be more developed and refined than a class final project. You should pay special attention to the following:
+
+An in-depth Literature Review that contextualizes the research question and justifies the proposed approach. The literature review should cover both broader theoretical frameworks and work on the general topic, as well as a detailed discussion of studies closely related to your work. Specific contributions of your paper given this previous work should be evident.
+A detailed description of Data and Methods that would allow a reader to reproduce the work. The discussion of your methodological approach (in contrast to possible alternatives) will be justified with respect to the specific Research question and existing literature.
+Well-formatted and thoughtfully selected plots and/or tables in the Results section that directly address the research question. The goal of this section is not to tell the reader all you have done, but to provide evidence towards a specific claim.
+An extensive discussion section that explicitly connects the results to the Literature Review, and comprehensively evaluates the strengths and limitations of the research.
