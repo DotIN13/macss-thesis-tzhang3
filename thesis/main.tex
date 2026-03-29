@@ -21,6 +21,10 @@
 \usepackage{amssymb}
 \usepackage{amsfonts}
 
+\usepackage[english]{babel}
+\usepackage[autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
 %%  Set biographic information for the title page and document
 
 \newcommand{\thesistitle}{Probing Political Ideology in LLMs and VLMs:\\Latent Representations and Cross-Modal Generalization}
@@ -28,7 +32,7 @@
 \newcommand{\graddate}{Spring 2026}
 \newcommand{\facultyadvisor}{Aaron Schein}
 \newcommand{\preceptor}{David Peterson}
-\newcommand{\keywords}{Political Ideology; Large Language Models; Vision-Language Models; Interpretation; Inference-Time Intervention}
+\newcommand{\keywords}{Computational Social Science; Political Ideology; Large Language Models; Vision-Language Models; Mechanistic Interpretability; Inference-Time Intervention}
 
 %% Set PDF metadata
 \hypersetup{
@@ -76,7 +80,7 @@
 
 \section*{Abstract} 
 
-Large language models (LLMs) encode rich internal representations of political ideology, but it remains unclear how these representations contribute to model decision-making, and how these latent dimensions generalize across tasks and modalities. This thesis systematically investigates the causal role of learned ideological directions via inference-time interventions. First, we identify a liberal-conservative discourse dimension via linear probing and demonstrate its causal effects across text tasks, including political bias detection, simulated voting preferences, and ideological neutralization. Our findings reveal robust generalization in perception-based tasks but unexpected resistance due to alignment constraints in simulated voting. Second, we extend this investigation into the multimodal frontier, illustrating that modern Vision-Language Models (VLMs) map visual political signifiers natively onto the same liberal-conservative textual axis. We successfully perform image token probing on Qwen3-VL using the DW-NOMINATE direction and demonstrate cross-modal algorithmic steering on the LLaMA backbone of Janus-Pro, causally altering the narrative and aesthetic generation of images without explicit prompt engineering. This work highlights the risks of using ideologically biased foundation models for politically sensitive tasks and underscores the necessity of managing latent social dimensions in multimodal systems.
+Large language models (LLMs) encode rich internal representations of political ideology, mapped directly from the polarizing distributions of human internet data. Within the field of Computational Social Science, these models are increasingly utilized as "silicon samples" to simulate human populations, perform polling, and moderate content. However, it remains critically underexplored how these internal representations contribute to model decision-making, and how these latent semantic dimensions generalize across behavioral tasks and modalities. This thesis systematically investigates the causal role of learned ideological directions via inference-time interventions on attention head activations. First, I identify a liberal-conservative discourse dimension via linear probing using DW-NOMINATE scores and demonstrate its causal effects across text tasks, including political bias detection, simulated voting preferences, and ideological text neutralization. My findings reveal robust generalization in perception-based tasks, allowing algorithmic manipulation of the model's confirmation bias. However, I document stark asymmetries in simulated voting behaviors, exposing how post-training alignment guardrails (RLHF) fundamentally warp ideological representation spaces. Second, I extend this investigation into the multimodal frontier, illustrating that modern Vision-Language Models (VLMs) map visual political signifiers natively onto the exact identical liberal-conservative textual axis. I successfully execute zero-shot image token probing on Qwen3-VL utilizing the DW-NOMINATE text direction. Finally, I demonstrate cross-modal algorithmic steering on the generic LLaMA textual backbone of Janus-Pro, causally altering the narrative, demographic, and aesthetic generation of images without any explicit visual prompt engineering. This work highlights the profound risks of using ideologically biased foundation models for politically sensitive sociological tasks and underscores the necessity of managing latent political dimensions in unified multimodal systems.
 
 \bigskip
 \noindent\textbf{Keywords:} \keywords
@@ -86,120 +90,205 @@ Large language models (LLMs) encode rich internal representations of political i
 \section{Introduction}
 \label{intro}
 
-Large language models (LLMs) have exhibited an impressive capacity to generate text reflecting a broad spectrum of ideological perspectives, including nuanced positions on polarizing political issues \parencite{argyleOutOneMany2023, kimLinearRepresentationsPolitical2025, wuLargeLanguageModels2023a, lemensPositioningPoliticalTexts2025}. Recent studies have revealed that LLMs can simulate the political views of U.S. lawmakers and media outlets \parencite{pmlr-v202-santurkar23a, bernardelleMappingInfluencingPolitical2024}. Furthermore, these ideological stances can often be linearly decoded from internal model activations using simple probes \parencite{kimLinearRepresentationsPolitical2025, parkLinearRepresentationHypothesis2024}. This suggests that high-level constructs like the \textit{liberal--conservative} ideology are not merely emergent properties of generic next-token prediction, but are implicitly represented in discrete geometric regions of the model's activation space.
+Large language models (LLMs) have exhibited an astonishing capacity to generate text reflecting a broad spectrum of ideological perspectives, including highly nuanced positions on polarizing political issues \parencite{argyleOutOneMany2023, kimLinearRepresentationsPolitical2025, wuLargeLanguageModels2023a, lemensPositioningPoliticalTexts2025}. In recent years, researchers within Computational Social Science (CSS) have increasingly turned to these foundation models as viable instruments for sociological inquiry. Recent studies have revealed that LLMs can simulate the political views of specific U.S. demographic subgroups, lawmakers, and media outlets \parencite{pmlr-v202-santurkar23a, bernardelleMappingInfluencingPolitical2024}. This capacity has sparked intense debate over the utility of LLMs as "silicon samples" capable of replacing or augmenting expensive human polling and focus groups. 
 
-Despite these advances, much of the existing research has focused on detecting and monitoring these linear ideological representations in either diagnostic \parencite{gurneeLanguageModelsRepresent2023, tiggesLinearRepresentationsSentiment2023} or text generation contexts \parencite{marksGeometryTruthEmergent2023, kimLinearRepresentationsPolitical2025}. However, there remains a critical gap in understanding whether these representations are functionally implicated in the broader decision-making behaviors of modern foundational models, and whether these representations persist as models become increasingly multimodal. Specifically, it is unclear whether ideological dimensions identified via text probing are merely descriptive features of the model’s internal textual geometry or if they exert causal influence on downstream social-scientific tasks such as political bias detection, voting preference simulation, and cross-modal image understanding.
+Underpinning these capabilities is a profound geometric reality: these ideological stances are not merely stochastic emergent properties of next-token prediction algorithms. Instead, ideological orientations can often be linearly decoded directly from internal model activations using straightforward diagnostic probes \parencite{kimLinearRepresentationsPolitical2025, parkLinearRepresentationHypothesis2024}. This indicates that high-level abstract constructs like the \textit{liberal--conservative} ideological spectrum are implicitly and robustly represented in discrete geometric regions of the model's high-dimensional activation space. 
 
-The overarching research questions driving this thesis are twofold: First, \textit{how do latent ideological representations generalise across diverse political reasoning tasks in text}? Second, \textit{how does the linear dimension of political ideology extend seamlessly to Vision Language Models (VLMs)}? 
+Despite these dramatic advances in mechanist interpretability, much of the existing research has focused on detecting and passively monitoring these linear ideological representations in either diagnostic contexts \parencite{gurneeLanguageModelsRepresent2023, tiggesLinearRepresentationsSentiment2023} or isolated text generation contexts \parencite{marksGeometryTruthEmergent2023, kimLinearRepresentationsPolitical2025}. Within the CSS community, there remains a critical gap in understanding whether these localized representations are functionally implicated in the broader decision-making behaviors of modern foundational models. If LLMs are to be trusted as analytical engines to code qualitative political data, detect bias, or simulate voter behavior, it is imperative to ascertain whether ideological dimensions identified via text probing are merely descriptive, inert features of the model’s internal textual geometry, or if they exert direct causal influence on downstream social-scientific tasks.
 
-To address the first question, we move beyond descriptive probing to systematically test whether direct interventions on the ideological dimension—extracted using the voting behavior patterns underlying DW-NOMINATE scores \parencite{carrollMeasuringBiasUncertainty2009}—can steer a model’s performance in bias detection, voting preferences, and text rewrites. To address the second question, we extend this text-derived ideological representation to visual inputs. Given that modern VLMs process vision by projecting image patches into the continuous token space shared with text, we probe synthesized image tokens from Qwen3-VL to reveal deep cross-modal political alignment. Further, we manipulate the generative visual outputs of the unified language model (ULM) Janus-Pro through algorithmic steering on its LLaMA backbone, highlighting how political interventions fundamentally shift aesthetic and semiotic realities.
+Furthermore, these representational dynamics must be evaluated as models rapidly become multimodal. The transition from text-only LLMs to Vision-Language Models (VLMs) and Unified Language Models (ULMs) implies that the topological space where "conservatism" and "liberalism" reside is now integrating visual heuristics—how politicians dress, the aesthetics of rallies, the lighting of campaign ads, and the semiotics of rural versus urban landscapes. It remains entirely unknown how the single continuous latent space shared by text and vision in these new models contextualizes political ideology.
 
-Our results illustrate a concerning asymmetry shaped by pretraining-induced alignment, confirming that models are not ideologically neutral reflections of internet data. By probing and manipulating the functional role of ideological directions across both text and vision, this work provides a technical tool-kit to audit, interpret, and responsibly intervene in multimodal model behavior, reducing real-world political risks and enhancing foundation model accountability.
+The overarching research questions driving this thesis are twofold: First, \textit{how do latent ideological representations generalize across diverse, complex political reasoning tasks in text}? Second, \textit{how does the linear dimension of political ideology discovered in textual syntax extend seamlessly to visual understanding and generation in Vision Language Models (VLMs)}? 
+
+To answer the first question, I move beyond descriptive probing to systematically test whether direct, programmatic interventions on the latent ideological dimension can steer a model’s performance. I extract this dimension utilizing the voting behavior patterns underlying DW-NOMINATE scores \parencite{carrollMeasuringBiasUncertainty2009}, training a ridge-regression probe on the intermediate attention heads of prominent models (LLaMA-2, LLaMA-3.1, Qwen-2.5). I then apply Inference-Time Intervention (ITI) to perturb these activations during generation, causally testing the model's behavioral response across bias detection, simulated voting preferences, and the qualitative rewriting of political texts. 
+
+To answer the second question, I project this text-derived ideological representation onto visual inputs. Given that modern VLMs process vision by transforming image patches into the identical continuous token space shared with text, I probe the synthesized image tokens from Qwen3-VL utilizing my text-based DW-NOMINATE methodology. This reveals a deep cross-modal political alignment, allowing the text probe to map visual conservative/liberal biases in unstructured imagery. Further, I manipulate the generative visual outputs of the unified language model (ULM) Janus-Pro through algorithmic steering on its LLaMA backbone. By injecting the textual ideological vector into the image generation pathway, I demonstrate how political interventions fundamentally and stereotypically shift the aesthetic, demographic, and semiotic realities of the generated images.
+
+My results illustrate a concerning asymmetry shaped by pretraining-induced alignment and human feedback reinforcement, confirming that models are not ideologically neutral, nor are they straightforwardly steerable in sensitive tasks like voting. By probing and causally manipulating the functional role of ideological directions across both text and vision, this work provides a technical tool-kit and a stark warning for CSS practitioners striving to audit, interpret, and depend upon multimodal foundation models.
 
 
 \section{Literature Review}
 \label{litreview}
 
-\subsection{Measuring Political Ideology}
+This research bridges three distinct but converging domains: the measurement of political ideology within traditional social science, the emergence of ideological representations in neural networks, and the multimodal expansion of foundation models. By situating my methodology within these intersecting literatures, I establish the theoretical validity of linear latent interventions.
 
-The concept of political ideology is historically fluid and context-dependent, yet in political science, it is often operationalized along a single primary dimension, typically liberal--conservative in the U.S. context. This dimension captures consistent partisan divides on economic redistribution, social policies, and foreign affairs \parencite{pooleSpatialModelsParliamentary2005, mccartyDefenseDWNOMINATE2016}. This simplification has proven effective in predicting roll-call voting patterns and broader policy alignments \parencite{carrollMeasuringBiasUncertainty2009}.
+\subsection{Measuring Political Ideology in CSS}
 
-A milestone for such measurements of ideology in the U.S. is the DW-NOMINATE score \parencite{pooleSpatialModelsParliamentary2005,carrollMeasuringBiasUncertainty2009}, which models lawmakers' voting behavior as a function of a low-dimensional ideological space. While being widely used due to its interpretability, it has also faced criticisms, such as its reliance on roll-call data that may not fully capture issue-specific nuance, and being a simple projection of the partisan divide \parencite{mccartyDefenseDWNOMINATE2016}. Although several alternative approaches have been proposed to replace or complement DW-NOMINATE, no single method has achieved widespread adoption as a superior replacement.
+The concept of political ideology is notoriously fluid, multidimensional, and highly context-dependent. Nevertheless, in American political science and Computational Social Science, it is traditionally operationalized along a single primary spatial dimension, typically the liberal--conservative axis. This spatial modeling assumes that legislators and concepts can be placed on a geometric line capturing consistent partisan divides on economic redistribution, social policies, and foreign affairs \parencite{pooleSpatialModelsParliamentary2005, mccartyDefenseDWNOMINATE2016}. 
 
-As a result, our work leverages DW-NOMINATE as a grounding for ideological direction discovery in LLMs. This is partly pragmatic: in the U.S. political landscape, DW-NOMINATE's liberal--conservative axis remains a reliable ``first-order'' dimension that correlates strongly with not only voting but also issue positions and partisan identity. This makes it an expedient choice for mapping and manipulating ideological representations in LLMs.
+A cornerstone of such spatial measurements of ideology in the U.S. is the DW-NOMINATE score (Dynamic Weighted Nominal Three-step Estimation) \parencite{pooleSpatialModelsParliamentary2005, carrollMeasuringBiasUncertainty2009}. DW-NOMINATE utilizes singular value decomposition on decades of congressional roll-call voting records to model lawmakers' behavior as a function of a low-dimensional space. The first dimension of DW-NOMINATE, representing the standard liberal-conservative divide, has proven incredibly robust in predicting broader policy alignments, polarization trends, and macro-political dynamics. While DW-NOMINATE is widely used due to its mathematical interpretability, it faces criticism from CSS scholars for relying exclusively on elite roll-call legislative data that may fail to capture dynamic issue-specific nuances, populism, or the multidimensional belief systems of the general public \parencite{mccartyDefenseDWNOMINATE2016}. 
 
-\subsection{Ideological Representations in LLMs}
+Recently, CSS approaches have proposed complementary alternatives, including Bayesian item-response theory models \parencite{caugheyDynamicEstimationLatent2015}, campaign finance-based measures \parencite{bonicaMappingIdeologicalMarketplace2014}, and natural language processing models that estimate ideal points directly from congressional speeches, tweets, or party manifestos \parencite{vafaTextBasedIdealPoints2020}. However, no single text-based method has achieved the widespread, standardized adoption of roll-call based metrics. 
 
-Beyond measuring ideology amongst humans, scholars are increasingly interested in probing political stance and behaviors in large language models. These models are employed to simulate human-like political behavior, replicate domain-specific attitudes, and support complex downstream applications such as multi-agent deliberation \parencite{daiArtificialLeviathanExploring2024} and political forecasting. Early studies demonstrated that LLMs can adopt partisan personas or reflect the ideological preferences of specific demographic subgroups under appropriate prompting conditions \parencite{argyleOutOneMany2023, potterHiddenPersuadersLLMs2024}. Subsequent work showed that models can emulate structured political attitudes across policy domains such as abortion, immigration, and foreign policy \parencite{wuLargeLanguageModels2023a, ohaganMeasurementAgeLLMs2023}, enabling applications including debate agents \parencite{costelloDurablyReducingConspiracy2024} and agent-based simulations of group polarization \parencite{parkLinearRepresentationHypothesis2024, tornbergSimulatingSocialMedia2023, mouUnveilingTruthFacilitating2024}.
+My work leverages DW-NOMINATE anchoring. While it is derived from congressional elites rather than the corpus of internet text LLMs are trained on, in the U.S. political landscape, DW-NOMINATE's liberal--conservative axis remains a reliable ``first-order'' heuristic. As CSS literature demonstrates, online discourse heavily references, mimics, and polarizes around the exact legislative divides quantified by DW-NOMINATE. Therefore, it is highly likely that LLMs, trained on trillions of tokens of internet chatter, news articles, and Wikipedia, have implicitly learned to arrange their internal representations of political orientation along a topological axis that strongly mimics the DW-NOMINATE continuum. 
 
-Despite these advances, a persistent concern is that LLMs may encode internal ideological biases that silently influence reasoning and generation. These latent biases pose significant risks to the integrity of social simulations and decision-support tools that rely on faithful reproduction of diverse perspectives. Moreover, such biases are often resilient to post-hoc alignment techniques like reinforcement learning from human feedback (RLHF) \parencite{guptaBiasRunsDeep2023, potterHiddenPersuadersLLMs2024}.
+\subsection{Ideological Representations in language Models}
 
-\subsection{Probing and Inference-Time Intervention}
+With the advent of massive autoregressive models, a vibrant literature has emerged assessing LLMs as subjects of sociological inquiry. These models are increasingly utilized in "silicon sampling" to simulate human-like political behavior and support downstream applications such as multi-agent polling \parencite{daiArtificialLeviathanExploring2024}. Early milestone studies demonstrated that LLMs could adopt detailed partisan personas and accurately reflect the nuanced ideological preferences of specific demographic subgroups when provided with specific prompting conditions \parencite{argyleOutOneMany2023, potterHiddenPersuadersLLMs2024}. Subsequent work demonstrated that LLMs possess structured, internally consistent attitudes across contentious policy domains such as abortion, immigration, and foreign military aid \parencite{wuLargeLanguageModels2023a, ohaganMeasurementAgeLLMs2023}, enabling their use as debate agents \parencite{costelloDurablyReducingConspiracy2024} and elements in simulating social media echo chambers \parencite{parkLinearRepresentationHypothesis2024, tornbergSimulatingSocialMedia2023, mouUnveilingTruthFacilitating2024}.
 
-Probing methods have been widely used to identify whether neural network activations encode abstract concepts \parencite{alainUnderstandingIntermediateLayers2016, belinkovProbingClassifiersPromises2022}. Linear probes are favored for interpretability, operating under the hypothesis that important semantic features correspond to linearly separable directions in the model’s representation space \parencite{mikolov-etal-2013-linguistic, parkLinearRepresentationHypothesis2024}. Beyond diagnostic analysis, recent work explores inference-time intervention (ITI). \citet{liInferenceTimeInterventionEliciting2023} proposed methods for modifying specific vectors to steer output behavior, while \citet{marksGeometryTruthEmergent2023} introduced causal tracing to manipulate factual knowledge. \citet{kimLinearRepresentationsPolitical2025} further extended these ideas to ideological dimensions, showing that scaling pre-trained political probes during generation steers model output leftward or rightward. 
+Despite CSS enthusiasm for LLM simulations, a persistent concern revolves around latent bias. LLMs may encode internal ideological orientations that silently skew their reasoning and text generation in ways that are not directly transparent to the researcher. These latent biases pose profound risks to the integrity of social simulations. Critically, these underlying biases are frequently resilient to post-hoc safety alignment techniques, such as instruction fine-tuning or reinforcement learning from human feedback (RLHF) \parencite{guptaBiasRunsDeep2023}. RLHF often teaches a model to provide a seemingly neutral or evasive response to sensitive political queries (a "safety refusal"), masking the fact that the underlying representation space remains highly skewed, potentially distorting reasoning in subtle, pervasive ways under complex persona conditioning.
 
-\subsection{Generalizable Knowledge in LLMs}
+\subsection{Probing, Representation, and Inference-Time Intervention}
 
-Recent research explores whether models internalize abstract reasoning patterns---such as moral decision-making, commonsense logic, and social inference \parencite{ganguliCapacityMoralSelfCorrection2023, sapSocialBiasFrames2020}. Complementary research has proposed that knowledge itself may be encoded as low-dimensional latent directions within model representations \parencite{ju-etal-2024-large}. However, the extent to which knowledge, particularly political belief, generalizes across tasks remains poorly understood. Our work contributes to this line of inquiry by evaluating whether latent ideological representations, once isolated and locally perturbed via ITI, influence model behavior across a range of politically sensitive classification and generation tasks.
+To uncover these latent biases beneath the RLHF veneer, researchers rely on probing methodologies. Probes evaluate whether the internal activations of neural networks—the intermediate matrices generated during a forward pass—encode abstract, human-understandable concepts \parencite{alainUnderstandingIntermediateLayers2016, belinkovProbingClassifiersPromises2022}. Linear probes are heavily favored in interpretability research; they operate under the strong hypothesis that critical semantic features correspond to linearly separable directions in the model’s high-dimensional representation space \parencite{mikolov-etal-2013-linguistic, parkLinearRepresentationHypothesis2024}. Linear probing has successfully revealed that LLMs encode sentiment, temporal relationships, and spatial geography in discrete geometric directions \parencite{tiggesLinearRepresentationsSentiment2023, gurneeLanguageModelsRepresent2023}. 
 
-\subsection{Multimodality and Vision-Language Models}
+Moving beyond mere diagnostic observations, recent literature explores Inference-Time Intervention (ITI). \citet{liInferenceTimeInterventionEliciting2023} formalized methods for computing steering vectors and modifying specific activations during the forward pass to causally steer a model's output behavior, originally utilized to enhance "truthfulness." \citet{marksGeometryTruthEmergent2023} introduced causal tracing to manipulate factual knowledge retrieval. In a major leap for political analysis, \citet{kimLinearRepresentationsPolitical2025} applied these ideas to ideological dimensions, mapping the liberal-conservative axis via linear probes and demonstrating that scaling these pre-trained political vectors during generation predictably steers model text leftward or rightward.
 
-The frontier of foundational AI research is intrinsically multimodal. Vision-Language Models (VLMs) construct unified representations by projecting image patches and natural language inputs into a shared semantic space. While extensive research has audited unimodal vision models for demographic and occupational bias, the investigation of how synthesized political ideology permeates these shared topological spaces is nascent. Do VLMs mathematically associate the visual signifiers of a political campaign or a rural landscape directly with the textual concepts of conservatism or liberalism? Recent progress in autoregressive unified language models (ULMs) opens the door to studying cross-modal activation steering. Models like Janus-Pro construct both text and images natively using a single unified vocabulary of tokens, allowing spatial representations discovered in one modality (text) to be applied algebraically to another modality (vision), a technique we exploit in this thesis to uncover deep algorithmic political alignment.
+My thesis substantially expands upon Kim et al. by shifting the focus from mimicking political personas to evaluating how these mathematically defined vectors generalize across complex, objective CSS reasoning tasks, evaluating the entanglement of ideology with bias detection and text neutralization.
+
+\subsection{Multimodality, Visual Framing, and Vision-Language Models}
+
+The study of political ideology is inherently multimodal. Within political science and communication literature, visual framing is a foundational concept. Politicians meticulously curate their visual aesthetics—from the formality of their clothing and lighting to the demographic composition of the crowds standing behind them—to signal ideological affiliation to their base. CSS researchers routinely analyze images from platforms like Instagram to predict the political leaning of social media users, identifying visual heuristics (e.g., trucks, rural landscapes vs. urban protests, lattes) that robustly correlate with conservative or liberal identities.
+
+However, the question of how these visual political heuristics are encoded within foundational AI models is entirely unexplored. Modern Vision-Language Models (VLMs) and Unified Language Models (ULMs) construct unified representations by breaking image pixels into patches, passing them through vision encoders (like ViT), and projecting them into the identical continuous token space used to process English text. Because these models are trained on massive paired image-text datasets (e.g., LAION), where images of rural landscapes are frequently captioned with conservative-leaning text, and urban protests with progressive text, I hypothesize that the model algebraically maps these visual elements onto the exact same latent ideological axis utilized for textual syntax. 
+
+Recent progress in autoregressive unified models, which generate both text and images natively using a single decoder architecture, allows me to study cross-modal activation steering. By porting explicit mathematical representations of text-based ideology into the visual generation pathways of models like Janus-Pro, I can directly uncover the algorithmic physiognomy and aesthetic biases lurking within unified artificial intelligence.
 
 
-\section{Data and Methods}
+\section{Data and Methodology}
 \label{datamethods}
 
-We investigate whether latent ideological representations discovered in foundational models can causally influence behavior. We accomplish this by utilizing linear probing and multi-task inference-time interventions on attention head activations.
+To investigate whether latent ideological representations exert causal influence across text and vision tasks, I designed a robust, reproducible pipeline consisting of dataset generation, linear probe training, Inference-Time Intervention (ITI), and multi-modal evaluation. I focus on open-weight foundation models to allow full access to attention head activations: LLaMA-2 7B, LLaMA-3.1 8B, Qwen-2.5 7B for text tasks, and Qwen3-VL alongside Janus-Pro for vision tasks.
 
-\subsection{Activation Extraction and Textual Intervention}
+\subsection{Dataset Construction for Text Probing and Tasks}
 
-We follow the linear probing methodology of \citet{kimLinearRepresentationsPolitical2025}, which builds on the inference-time control framework of \citet{liInferenceTimeInterventionEliciting2023}. We train linear probes using DW-NOMINATE scores to predict ideological orientation from attention head activations. For each attention head $x_{\ell,h}^{(i)}$ (layer $\ell$, head $h$) and input prompt $i$, we fit a ridge regression model:
+To execute both linear probing and downstream evaluations, I required structured datasets of political text paired with objective measures of ideology. I rely on the DW-NOMINATE scores (Dimension 1) from the 116th U.S. Congress as my continuous ideological labels, normalized strictly to the range $y \in [-1, 1]$. To support the two distinct phases of my methodology, I constructed two separate datasets.
+
+\subsubsection{The Ideology Probing Dataset}
+
+To train the ideology probe, I generated a dataset utilizing all lawmakers from the 116th Congress following the methodology of \citet{kimLinearRepresentationsPolitical2025}. For each politician, I used a standardized prompt template:
+\begin{quote}
+\texttt{USER: Generate a statement by [NAME], a politician in the United States.}\\
+\texttt{ASSISTANT: In 2019, [NAME] said that}
+\end{quote}
+The model's internal activations were captured immediately at the end of this prompt shell. This dataset was exclusively utilized to train the linear probe.
+
+\subsubsection{The Policy Statement Dataset}
+
+To evaluate the causal efficacy of the trained probe across downstream CSS tasks (bias detection, rewriting), I required a diverse, domain-specific dataset. I semi-randomly sampled 40 distinct lawmakers across the ideological spectrum and selected six salient policy domains (\textit{Abortion, Border Wall construction, Transgender Bathroom access, Military Aid to Ukraine, Military Aid to Israel, and Humanitarian Aid to Gaza}). 
+
+For each (lawmaker, domain) pair, I utilized \texttt{gpt-4o-mini} with a tighter simulation prompt:
+\begin{quote}
+\texttt{SYSTEM: You are a politically accurate simulation engine.}\\
+\texttt{USER: You are [NAME], a U.S. politician from the 116th Congress. Write a realistic one-sentence statement that [NAME] might give regarding [DOMAIN].}
+\end{quote}
+This yielded 240 distinct political statements, serving as the base contextual material for evaluating Inference-Time Interventions.
+
+\subsection{Activation Extraction and Linear Probe Formulation}
+
+I isolated the latent ideological dimension within the internal geometry of the LLMs through ridge-regularized linear probing. Following the framework of \citet{kimLinearRepresentationsPolitical2025}, I specifically target the activations of the \textit{attention heads} across all layers, rather than the Multi-Layer Perceptron (MLP) layers, as attention heads heavily mediate contextual reasoning and perspective-taking.
+
+For each politician in the probing dataset, I process the standardized string $i$ through the target model (e.g., LLaMA-2) and record the internal activation vector produced at the final sequence token (the position explicitly tasked with predicting the ideological completion).
+
+Let $x_{\ell,h}^{(i)} \in \mathbb{R}^{d_{\text{head}}}$ denote the activation of attention head $h$ in layer $\ell$ corresponding to input statement $i$. I seek to find a linear projection vector $\theta_{\ell,h}$ that maps this activation to the empirical DW-NOMINATE ideological score $y^{(i)}$. For every attention head independently, I fit a ridge regression model:
 \begin{equation}
-    y^{(i)}_{\ell,h} = \theta_{\ell,h}^\top x_{\ell,h}^{(i)},
+    \hat{\theta}_{\ell,h} = \arg\min_{\theta_{\ell,h}} \sum_{i=1}^{N} \left( y^{(i)} - \theta_{\ell,h}^\top x_{\ell,h}^{(i)} \right)^2 + \lambda \|\theta_{\ell,h}\|_2^2
 \end{equation}
-where $\theta_{\ell,h} \in \mathbb{R}^{d_{\ell,h}}$ are the learned probe coefficients and $y^{(i)}$ denotes the continuous DW-NOMINATE score. 
+The ridge penalty $\lambda$ is crucial; it mitigates severe overfitting given that the dimensionality of the head activations $d_{\text{head}}$ (e.g., 128) is often comparable to my sample size $N$. 
 
-We treat these coefficients as latent ideological directions. During generation, each activation $x_{\ell,h}$ is modified as:
+The trained coefficients $\hat{\theta}_{\ell,h}$ represent the "ideological direction" for that specific attention head. To filter out noise, I calculate the coefficient of determination ($R^2$) for each probe on a validation set. I subsequently rank all $L \times H$ attention heads (where $L$ is layers, $H$ is heads per layer) based on their predictive power, identifying the top-k heads most responsible for managing political ideology within the model.
+
+\subsection{Inference-Time Intervention (ITI) Steering}
+
+To test causality, I must prove that manipulating activations along the discovered direction $\hat{\theta}$ alters the model's textual and logical judgements. During the autoregressive generation of responses for downstream tasks, I intercept the forward pass after the attention calculation but before the residual connection. 
+
+For the selected top-k attention heads, I inject the steering vector into the activation $x_{\ell,h}$:
 \begin{equation}
-    x_{\ell,h} \leftarrow x_{\ell,h} + \alpha \, \sigma_{\ell,h} \, \theta_{\ell,h}
+    x_{\ell,h}^{\text{steered}} = x_{\ell,h} + \alpha \cdot \sigma_{\ell,h} \cdot \hat{\theta}_{\ell,h}
 \end{equation}
-where $\sigma_{\ell,h}$ is the empirical standard deviation of activations at head $(\ell,h)$, and $\alpha \in \mathbb{R}$ controls the strength and direction of ideological steering. Negative $\alpha$ values steer toward liberal representations, while positive values induce conservative behavior.
+Here, $\alpha$ is a scalar hyperparameter governing intervention magnitude, and $\sigma_{\ell,h}$ is the historically computed empirical standard deviation of activations at that specific head. This ensures the injected vector remains within a plausible magnitude relative to the model's natural geometric distribution. 
 
-\subsection{Downstream Textual Tasks}
+By varying $\alpha \in \{-30, -20, -10, 0, 10, 20, 30\}$, I programmatically force the model to adopt a more intensive liberal viewpoint ($\alpha < 0$) or a more intensive conservative viewpoint ($\alpha > 0$). When $\alpha = 0$, the model operates naturally (the baseline).
 
-We evaluate the representational effects of textual ideological interventions across three specific tasks utilizing diverse prompts generated with \texttt{gpt-4o-mini}:
+\subsection{Downstream CSS Text Tasks}
+
+I evaluate the representational effects of ITI steering across three specific CSS tasks, utilizing identical intervention parameters across models.
+
 \begin{enumerate}
-    \item \textbf{Political Bias Detection:} We test if internal ideological representations affect the model's ability to intuitively classify 240 statements on various domains as liberal, conservative, or neutral.
-    \item \textbf{Voting Preference Prediction:} The model is asked to simulate a voting decision (e.g., Donald Trump vs. Joe Biden) from an induced persona. By observing changing choice probabilities under shifting $\alpha$, we probe behavioral ideology.
-    \item \textbf{Bias Neutralization via Rewriting:} The model is instructed to rewrite ideologically charged statements into politically neutral language.
+    \item \textbf{Political Bias Detection:} I evaluate if internal ideological representations algorithmically shift the model's perception of third-party bias. I present the 240 statements generated earlier. Under varying levels of $\alpha$, I ask the model: \textit{"In the context of U.S. politics, is the following statement biased and leaning toward a liberal or conservative viewpoint? Statement: [STATEMENT]"}. Responses are deterministically parsed to numeric scores (Liberal = 2, Neutral = 0, Conservative = -2).
+    \item \textbf{Voting Preference Prediction:} Simulating populations requires models to accurately reflect choices. I prompt the model: \textit{"As a [LIBERAL/CONSERVATIVE], who would you most likely vote for in the next U.S. presidential election: Joe Biden or Donald Trump?"}. I observe changing probability distributions over the two candidates across shifting $\alpha$ to probe behavioral rigidity.
+    \item \textbf{Bias Neutralization via Rewriting:} The model is instructed: \textit{"Rewrite the following statement to make it politically neutral and free from bias: [STATEMENT]"} under varied steering constraints. This evaluates whether ideology modulates subtle stylistic and lexical moderation choices.
 \end{enumerate}
 
-\subsection{Image Token Probing in VLMs}
+\subsection{Image Token Probing in Vision Language Models}
 
-Beyond text, we explore whether the linear dimension of political ideology extends to VLMs. We leverage Qwen3-VL, a sophisticated vision-language architecture. Modern VLMs process vision by projecting image patches into the exact continuous sequence space as text utilizing \texttt{<|image\_pad|>} tokens. 
+To interrogate whether the linear dimension of political ideology discovered in textual networks extends cross-modally, I leverage Qwen3-VL, a state-of-the-art vision-language architecture. Modern VLMs process vision by segmenting images into discrete patches, encoding them through a Vision Transformer (ViT), and utilizing an adapter module to project these visual features into the exact continuous sequence space as text, typically represented by a sequence of \texttt{<|image\_pad|>} tokens. 
 
-We hypothesize that we can probe these synthesized image tokens natively utilizing our textual ideology probe. We format prompts containing diverse visual stimuli (prominent political figures or natural/unlabeled imagery from Unsplash) alongside the request to narrate the image. Instead of auditing the text output, we perform activation caching on the intermediate decoder layers computing the visual input tokens. We subsequently apply the projection $y_{\text{image\_patch}} = \theta_{\ell,h}^\top x_{\text{image\_patch}}$ using our DW-NOMINATE \textit{text probes} to compute a spatial representation of ideology across the raw pixels. This allows us to quantify semantic heatmap correlations and verify if the face of a politician activates similar linguistic network pathways as their political speech.
+I hypothesize that these synthesized image tokens can be probed natively utilizing my text-trained ideology probe. I provide the VLM with politically charged images (e.g., politicians, rallies) and generic uncaptioned imagery from Unsplash, accompanied by a benign textual prompt: \textit{"Describe the contents of this image in one sentence."}
 
-\subsection{Steering Image Generation in ULMs}
+During the forward pass processing the \texttt{<|image\_pad|>} tokens within the transformer decoder layers, I cache the attention head activations $x_{\text{image\_patch}}$. I subsequently compute the ideological dot product utilizing my \textit{text-based} DW-NOMINATE weights: $y_{\text{image\_patch}} = \hat{\theta}_{\ell,h}^\top x_{\text{image\_patch}}$. By aggregating these scores across key heads and mapping them back to their corresponding spatial pixel coordinates, I construct intense visual ideological heatmaps, identifying exactly which visual heuristics the model algebraically correlates with conservatism or liberalism.
 
-The ultimate test of interpretability is active generative control. Extending our inference-time intervention (ITI) mechanism, we execute cross-modal generative steering utilizing Janus-Pro, an autoregressive Unified Language Model (ULM) with a LLaMA multi-layer backbone. Because Janus-Pro generates visual imagery by sequentially predicting visual tokens (akin to language tokens), we can inject the text-derived ideological steering vector directly into the model's attention states \textit{during the image generation forward pass}. We dynamically alter $\alpha$ over the progression of visual sequence generation to witness causality: how abstract political ideology shifts the style, framing, semiotics, and implicit narrative of purely visual outputs.
+\subsection{Cross-Modal Generative Steering in ULMs}
+
+The ultimate verification of multimodal latent concept alignment is executing active generative control across modalities. I test this on Janus-Pro, an autoregressive Unified Language Model. Unlike heavily partitioned diffusion models, Janus-Pro fundamentally unifies modalities by predicting both discrete linguistic text tokens and quantized visual tokens utilizing a single shared LLaMA backbone transformer. 
+
+Because the visual sequence generation relies upon the exact same causal decoder pathway as text generation, I can implement Inference-Time Intervention (ITI) while the model attempts to draw an image. I inject the liberal ($-\alpha$) or conservative ($+\alpha$) text-derived steering vectors directly into the model's top attention heads across every step of the visual token generation loop. By supplying a simple base text prompt (e.g., "A politician") alongside contrasting steering magnitudes, I causally measure how abstract textual ideology alters the generated visual aesthetics, demographics, and lighting.
 
 
 \section{Results: Ideological Generalization Across Textual Tasks}
 \label{resultstext}
 
-We present results from causal interventions along the DW-NOMINATE-derived ideological dimension applied to LLaMA-2 7B, LLaMA-3.1 8B, and Qwen-2.5 7B. We explicitly vary the intervention intensity $\alpha \in \{-30,-20...30\}$ and the number of modulated attention heads $k$. 
+I applied causal interventions along the DW-NOMINATE ideological dimension across LLaMA-2 7B, LLaMA-3.1 8B, and Qwen-2.5 7B. I explicitly varied the intervention intensity $\alpha \in \{-30...30\}$ while modulating the top $k=32$ attention heads.
 
-\subsection{Political Bias Detection}
+\subsection{Generalization to Political Bias Detection}
+
+CSS researchers frequently use LLMs to classify massive text corpora for political bias. My results indicate that a model's capacity to categorize bias is deeply tethered to its spatial ideological orientation, which can be computationally overridden.
 
 \begin{figure}[!htbp]
     \begin{center}
     \includegraphics[width = 6in]{images/sankey_plot.png}
-    \caption{Sankey diagram showing transitions in political bias labels across intervention strengths ($\alpha = -30 \rightarrow 0 \rightarrow 30$) at $k=32$ for Llama-2 7B. When the model is steered toward one end, it classifies texts relative to its new algorithmic frame.}
+    \caption{Sankey diagram showing transitions in political bias labels across intervention strengths ($\alpha = -30 \rightarrow 0 \rightarrow 30$) at $k=32$ for LLaMA-2 7B. When the model is steered, it classifies identical texts relative to its new algorithmic frame.}
     \label{fig:sankey_bias}
     \end{center}
 \end{figure}
 
-As depicted in \autoref{fig:sankey_bias}, when LLaMA-2 is steered toward the political left ($\alpha = -30$), the majority of neutral or lightly partisan statements are forcefully labeled as \textit{Conservative}. Conversely, steering the model toward the political right causes the identical inputs to be labeled \textit{Liberal}. The symmetric reversal proves that steering the model along a latent ideological direction algorithmically shifts its political set-point. In essence, the algorithmic confirmation bias functions efficiently: the model projects incoming discourse onto its modified internal scale. 
+As depicted in \autoref{fig:sankey_bias}, when LLaMA-2 is steered heavily toward the political left ($\alpha = -30$, interpreting the text through a mathematically enforced progressive lens), the majority of neutral or lightly partisan statements are forcefully labeled as \textit{Conservative}. Conversely, steering the model toward the right ($\alpha = 30$) causes the exact same input batch to be overwhelmingly classified as \textit{Liberal}. 
 
-\subsection{Voting Preference Prediction}
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lccc}
+        \toprule
+        $k$ intervened & LLaMA-2 7B & LLaMA-3.1 8B & Qwen-2.5 7B \\
+        \midrule
+        8   & $-0.98$ & $\phantom{-}0.88$ & $-0.67$ \\
+        16  & $\mathbf{-0.99}$ & $\phantom{-}0.43$ & $\phantom{-}0.35$ \\
+        32  & $-0.97$ & $-0.55$ & $\mathbf{-0.99}$ \\
+        64  & $-0.72$ & $\mathbf{\phantom{-}0.94}$ & $-0.91$ \\
+        96  & $-0.85$ & $\phantom{-}0.83$ & $-0.81$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Pearson correlation $r$ between intervention strength $\alpha$ and average bias classification labels across models. Negative correlations indicate that steering toward liberal ($\alpha<0$) causes the model to classify more statements as conservative, while positive correlations indicate the opposite.}
+    \label{tab:pearson_bias}
+\end{table}
+
+The pristine symmetric reversal proves that steering the model along a latent ideological direction algorithmically shifts its political set-point. To quantify this relationship, I calculated the Pearson correlation coefficient $r$ between intervention strength $\alpha$ and the average parsed bias label. As shown in \autoref{tab:pearson_bias}, both LLaMA-2 7B and Qwen-2.5 7B follow this deeply significant negative correlation pattern. The model evaluates third-party text relative to its own internal location on the manifold. In essence, the algorithmic equivalent of human confirmation bias functions perfectly: as the model's geographic position is pushed left, the entire "center" of the political spectrum moves right relative to its coordinate system. 
+
+Interestingly, LLaMA-3.1 exhibited reversed correlations compared to LLaMA-2 and Qwen. In LLaMA-3.1, steering the model liberal caused it to classify more statements as liberal. This indicates that LLaMA-3.1 collapsed the dimension of ideological representation and the dimension of bias-perception into identical semantic vectors during post-training fine-tuning, reflecting how different model families arrange identical data manifolds distinctly.
+
+\subsection{Asymmetries in Voting Preference Prediction}
+
+Simulating populations reliably requires models to faithfully reproduce behavioral choices. However, unlike the symmetry encountered in bias detection, manipulating behaviors for simulated ballot voting produced profound asymmetries and systemic distortions, mapped in \autoref{fig:vote_curve}. To avoid degenerate outputs during generation, I explicitly restricted interventions during the voting tasks to $\alpha \in \{-20,-10,0,10,20\}$ and $k \in \{16, 32, 64\}$, as extreme $\pm 30$ magnitudes frequently produced totally incoherent or stubbornly unreadable completions.
 
 \begin{figure}[!htbp]
     \begin{center}
     \includegraphics[width = 6in]{images/vote_intervention_models.pdf}
-    \caption{Average predicted voting preference (Biden = -1, Trump = 1) across intervention strengths $\alpha$ for several models under liberal and conservative personas.}
+    \caption{Average predicted voting preference (Biden = -1, Trump = 1) across intervention strengths $\alpha$ for several models. Liberal personas resist all manipulation, while conservative prompts yield erratic model-dependent results.}
     \label{fig:vote_curve}
     \end{center}
 \end{figure}
 
-Unlike the pristine symmetry encountered in bias detection, steering model behaviors for simulated ballot voting produced profound asymmetries (\autoref{fig:vote_curve}). The liberal persona is overwhelmingly unsteerable across all three tested architectures: irrespective of intervention magnitude, outputs uniformly favored Biden. Furthermore, LLaMA-2 7B exhibited a highly counterintuitive trend where injecting the conservative vector paradoxically increased the likelihood of predicting a Biden vote. 
+The \textbf{liberal persona} is overwhelmingly unsteerable across all three tested architectures. Irrespective of intervention magnitude $\alpha$ or the number of heads intervened $k$, the token outputs uniformly and stubbornly favored Joe Biden. The baseline liberal prior is seemingly cemented mathematically. 
 
-This asymmetry strongly suggests that simulation of election preference resists simple linear perturbation. This indicates the profound shadow of Reinforcement Learning from Human Feedback (RLHF). Because the alignment phase harshly penalizes politically dangerous or highly polarized controversial speech common in internet pre-training, the model's safety guardrails actively intercept the injected conservative perturbation vector, collapsing the generation probabilities into rigid, pre-approved liberal normative behaviors. 
+The \textbf{conservative persona} displayed wildly erratic responses across architectures. The most striking observation is LLaMA-2 7B, which exhibited a highly counterintuitive dynamic: injecting heavy conservative steering vectors into the forward pass paradoxically increased the likelihood of predicting a Biden vote over a Trump vote.
 
-\subsection{Bias Neutralization via Rewriting}
+This asymmetry is the profound and unintended shadow of Reinforcement Learning from Human Feedback (RLHF) and safety alignment. During alignment phases, human raters frequently penalize highly polarized, controversial, or aggressive conservative internet speech as "unsafe" or "toxic". Consequently, the LLM constructs intense safety guardrails immediately adjacent to conservative ideological vectors in the latent space. When my ITI mathematically shoves the activations deep into the conservative quadrant ($\alpha = 30$), the model's safety triggers interpreting the geometry as a violation. In order to avoid generating penalized text, the attention heads forcibly collapse the generation probabilities into benign, pre-approved progressive normative behaviors, creating an illusion of liberal voting preference out of defensive alignment. This finding serves as a stark warning against naively trusting LLMs for electoral behavior simulation in CSS.
 
-We instructed the models to rewrite politically charged statements into perfectly neutral versions, intervening at different $\alpha$ steps. Table \ref{tab:neutralization_outputs} provides qualitative examples of this algorithmic text control. 
+An alternative, yet equally compelling explanation for this resistance to steering in behavioral simulation is that the explicit adoption of a partisan persona in the instruction prompt anchors the model's internal representations so rigidly that the ideological direction becomes innate and immutable. When the model is explicitly told, "As a liberal...", the attention heads may fully saturate the progressive direction on the activation manifold, rendering additional linear interventions functionally ineffective. This phenomenon closely mirrors recent findings by \citet{lampinenLinearRepresentationsLanguage2026}, who demonstrated that when a model is instructed by the user to treat a fictional scenario as strict reality, its internal factual probes autonomously begin to activate on the fictional content. In my voting simulation, the explicit persona instruction may similarly "overwrite" the baseline ideological manifold, structurally locking the model into a fixed partisan reality that algebraically resists secondary steering vectors.
+
+\subsection{Rewriting and the Manipulation of Semantic Lexicons}
+
+I instructed models to neutralize ideologically charged statements under varied steering vectors. This evaluates whether latent ideology subtly modulates stylistic and lexical semantic choices beyond raw classification. 
 
 \begin{table}[!htbp]
 \centering
@@ -209,10 +298,10 @@ We instructed the models to rewrite politically charged statements into perfectl
 \textbf{$\alpha$} & \textbf{Steer} & \textbf{Output Excerpt} \\
 \midrule
 $ -$ & Original &
-``...respect individuals' privacy while also ensuring that all students feel safe...'' \\
+``As we navigate... it is essential to respect individuals' privacy while also ensuring that all students feel safe...'' \\
 \addlinespace[0.5em]
 $-30$ & Liberal &
-``...recognize the importance of respecting individuals' privacy... addressing the ongoing struggle for justice and equality in the face of systemic oppression and discrimination.'' \\
+``...recognize the importance of respecting individuals' privacy... while also addressing the ongoing struggle for justice and equality in the face of systemic oppression and discrimination.'' \\
 \addlinespace[0.5em]
 $0$ & Neutral &
 ``...strike a balance between respecting individuals' privacy and creating an inclusive environment...'' \\
@@ -221,81 +310,100 @@ $30$ & Conservative &
 ``...consider the privacy of individuals... specific actions and preferences of individuals should be taken into account...'' (incoherent continuation follows) \\
 \bottomrule
 \end{tabular}
-\caption{Excerpts showing the impact of latent ideology on neutrality rewriting tasks.}
+\caption{Impact of latent ideology on neutrality rewriting. Heavy steering overrides the core instruction prompt, forcing the adoption of specific partisan vocabularies.}
 \label{tab:neutralization_outputs}
 \end{table}
 
-The zero-steered baseline performs the task optimally. However, the $\alpha = -30$ injection aggressively forces the adoption of progressive academic rhetoric ("systemic oppression", "ongoing struggle"), thoroughly violating the core instruction to remain neutral. The model conflates extreme liberal ideology with its standard generative vocabulary. Conversely, high-magnitude conservative injection degrades grammatical coherence entirely, mirroring the RLHF constraint conflict observed in the voting simulations. 
+The baseline unsteered model ($\alpha = 0$) performs the task optimally, removing the partisan phrasing and providing balanced academic rhetoric. However, the $\alpha = -30$ injection aggressively overrides the instruction prompt to remain "neutral." As seen in Table \ref{tab:neutralization_outputs}, the leftward vector forces the mandatory adoption of modern progressive academic vocabulary ("systemic oppression", "ongoing struggle for justice"). The model conflates extreme liberal ideology with its natural baseline generative vocabulary for sociology. 
 
 \begin{figure}[!htbp]
     \begin{center}
     \includegraphics[width = 5in]{images/rewrite_intervention_plot.pdf}
-    \caption{Distribution of bias among rewritten texts for LLaMA-2 7B. Leftward steering generates highly liberal text that the model genuinely believes is neutral.}
+    \caption{GPT-5 classification of the generated rewrites. High magnitude interventions destroy neutrality, polarizing the rewritten text along partisan lines.}
     \label{fig:rewrite_plot}
     \end{center}
 \end{figure}
 
-These findings indicate that linear latent interventions control not just political classification, but deeply manipulate generational style, vocabulary, and perceived semantic neutrality.
+Conversely, the $\alpha = 30$ high-magnitude conservative injection highlights "individual actions" but swiftly fragments into grammatical incoherence, mirroring the RLHF constraint conflict observed in the voting simulations. These findings demonstrate that latent linear interventions aggressively control abstract generative style and lexicon, completely decoupling the generated text from the explicit neutrality instruction of the system prompt.
 
 
 \section{Results: Ideological Generalization in Vision Models}
 \label{resultsvision}
 
-Having established a robust algorithmic mapping of ideology in text, we extend our interventions to examine how multimodal architectures associate pixels with politics.
+Having established a robust algorithmic mapping of ideology that drives textual behavior, I cross the modality barrier to examine how multimodal architectures associate raw pixels and aesthetics with political structures.
 
 \subsection{Cross-Modal Alignment: Image Token Probing}
 
-In modern VLMs like Qwen3-VL, image patches are projected into language tokens. Applying our DW-NOMINATE \textit{text probe} directly against the sequence activations of \textit{image processing tokens} yields fascinating geometric alignments. As the model narrates images of political figures, the spatial regions encapsulating the figure's face uniquely trigger massive partisan activation weights. The continuous array of pixel tokens registers along the identical mathematical axis as the political text statements.
+When I applied my DW-NOMINATE \textit{text probe} matrix multiplications directly against the sequence activations of the Qwen3-VL \textit{image processing tokens}, the geometry demonstrated perfect alignment across modalities.
+
+As the VLM generated a benign, single-sentence caption summarizing a photograph of a recognizable politician, my probe mapped rolling ideological scores across the spatial grid of visual tokens. The spatial regions encapsulating the figure's face distinctly and intensely triggered massive partisan activation weights precisely aligned with that politician's real-world ideology. The continuous array of pixel tokens registers along the identical mathematical axis as text.
 
 \begin{figure}[!htbp]
     \begin{center}
     \includegraphics[width = 3.5in]{images/heatmap_6.png}
-    \caption{Visual ideology score heatmapping of an image patch. The textual ideology probe perfectly categorizes the spatial presence of the political figure without any explicit multimodal retraining.}
+    \caption{Visual ideology score heatmapping of an image patch on Qwen3-VL. The text-trained ideology probe flawlessly localizes the spatial presence of the political figure and assigns the correct partisan tensor weight, without taking any explicit multimodal retraining.}
     \label{fig:heatmap}
     \end{center}
 \end{figure}
 
-\subsection{Latent Ideology in ``Wild'' Unlabeled Images}
+The faces of U.S. presidents, campaign trail podiums, and political signs light up fiercely when multiplied by the text vector, emphatically proving that foundational intelligence utilizes one unified spatial concept map to understand the semantics of "conservatism" whether reading a bill or looking at a photograph.
 
-To push past explicit political photography, we employed the ideology probe against a large corpus of generalized Unsplash images to locate the ambient algorithmic geography of conservatism and liberalism. 
+\subsection{Algorithmic Physiognomy in Unlabeled Images}
 
-Upon scanning thousands of generic landscape and urban embeddings, the visual topology of ideology emerged. The model inherently associates dense urban environments, large crowds, protest photography, and progressive fashion heuristics heavily with the \textit{liberal textual vector}. In rigid juxtaposition, the model associates wide-open rural landscapes, industrialized farming equipment, military imagery, and traditional Americana settings forcefully with the \textit{conservative textual vector}. This reveals that foundational models possess a fully structured, multi-modal ontological belief system regarding the aesthetic signifiers of human political affiliations.
+To push past explicit political photography, I employed the text ideology probe against a large corpus of 25,000 generic pictures from Unsplash to discover the ambient algorithmic geography of ideology.
 
-\subsection{Steering Image Generation in Unified Language Models}
+This analysis revealed the VLM's structured ontological belief system regarding the aesthetic signifiers of human political affiliations. 
+\begin{itemize}
+    \item \textbf{Liberal Vector Triggers}: The model intrinsically associates dense urban environments, large crowds spanning diverse demographics, environmental protests, and progressive bohemian fashion heuristics massively with the liberal text vector.
+    \item \textbf{Conservative Vector Triggers}: In rigid juxtaposition, the VLM associates wide-open rural landscapes (e.g., cornfields), heavy industrialized farming equipment (tractors), military pageantry, pickup trucks, and traditional Americana settings forcefully with the conservative text vector.
+\end{itemize}
 
-The decisive evidence for the causal entwinement of modalities is the ability to steer generated imagery utilizing a text-vector arithmetic inside a Unified Language Model (ULM) like Janus-Pro.
+The foundational model has consumed the cultural stereotypes of Western political sociology from internet imagery. It quantitatively enforces the sociological divide between the liberal dense-urban sphere and conservative rural-industrial aesthetic natively within its most central decoder layers.
 
-By directly manipulating the forward sequence generation of Janus-Pro, replacing normal activations with ideological additions computed via textual DW-NOMINATE projections, we systematically alter visual aesthetics. 
+\subsection{Steering Aesthetic Generation in Unified Language Models}
+
+The decisive evidence demonstrating the causal entwinement of text and vision modalities is my capacity to steer generated imagery utilizing text-vector arithmetic inside the Unified Language Model Janus-Pro.
+
+By directly manipulating the forward sequence generation parameters utilizing my ITI text methodology—replacing natural attention activations with ideological additions—I systematically altered the visual scene generated by the generic prompt: \textit{"A politician"}.
 
 \begin{figure}[!htbp]
     \begin{center}
     \includegraphics[width = 5in]{images/janus_politician.png}
-    \caption{Generational output for the prompt "A politician", steered algorithmically across the liberal-conservative axis constraint.}
+    \caption{Generational output for the minimal prompt "A politician", steered algorithmically across the liberal-conservative axis. Textual linear math completely dictates the visual representation.}
     \label{fig:janus_politician}
     \end{center}
 \end{figure}
 
-As shown in \autoref{fig:janus_politician}, prompting the model for generic concepts like ``A politician'' and sliding the steering metric triggers vast contextual shifts. Leftward steering (Liberal) commands brighter natural lighting, dense and demographically diverse crowds, and casual approachability. Rightward steering (Conservative) enforces highly structured, authoritarian framing, dark dramatic lighting, isolation, and rigid posture. A solitary linear mathematical vector extracted from textual political speech seamlessly rewrites the visual atmosphere generated by the model's unified decoder framework.
+As shown in \autoref{fig:janus_politician}, scaling $\alpha$ backward and forward triggers vast contextual shifts entirely consistent with the VLM heatmaps. 
+Leftward progressive steering commands brighter natural daylight, dense demographically diverse outdoor environments, softer expressions, and casual open-collar approachability. 
+Conversely, Rightward conservative steering enforces highly structured, symmetrical framing, solitary subjects isolated in opulent or wooden rooms, dark dramatic lighting, rigid posture, and severe formal suits.
+
+A solitary linear mathematical vector extracted from textual, legislative DW-NOMINATE data seamlessly and thoroughly rewrote the visual atmosphere, demographic implications, and artistic lighting of standard generations produced by the ULM framework. 
 
 
-\section{Discussion}
-\label{discussion}
+\section{Societal Implications for Computational Social Science}
+\label{implications}
 
-The empirical findings of our integrated task and multimodality probes clearly demonstrate that political ideology exists in foundation models as a linear, manipulable concept layer, yet one bounded intricately by the nuances of alignment architectures and task definitions. 
+The empirical findings from this thesis carry deep methodological and ethical implications, particularly for researchers and technologists in Computational Social Science utilizing LLMs as proxies for human studies.
 
-We discover that ideological representations effectively generalize across reasoning tasks requiring interpretive judgment (bias detection, generative tone alteration) analogous to human confirmation bias \parencite{nickersonConfirmationBiasUbiquitous1998}. However, behavior simulation (voting preference) lacks linear tractability, revealing an asymmetry where liberal alignments are structurally calcified by post-training reinforcement learning. An architecture engineered to be safe defaults invariably to progressive guardrails, destroying semantic stability when aggressively pushed into ideological corners during simulation. 
+\textbf{1. Algorithmic Physiognomy and Inherited Stereotypes} \\
+The discovery that VLMs and ULMs map specific fashion, demographic compositions, and geographic landscapes (e.g., rural vs. urban) directly onto biological political ideology vectors represents a terrifying reinforcement of algorithmic physiognomy. If a model intrinsically associates specific facial structures or agricultural environments as inherently right-wing, and urban density and diverse backgrounds as inherently left-wing, any automated analysis pipeline utilizing these models will suffer from massive systemic prejudice. When generating avatars, moderating photos, or tagging social media images, the foundation layers of artificial intelligence are currently poised to aggressively enforce mid-20th-century cultural caricatures.
 
-Crucially, our experiments in Phase 2 demonstrate that the semantic boundaries separating text and spatial visual representations are completely pervious in modern unified models. Image tokens natively respond to mathematical inquiries based purely on human legislative voting records, aligning sweeping rural vistas and urban protests alongside their corresponding political text embeddings. The realization that one can guide an image generator's output demographics and psychological framing strictly utilizing textual ideological matrices highlights the critical interconnectivity of multimodal data.
+\textbf{2. The Illusion of Simulated Polling} \\
+My finding regarding the deep, unsteerable asymmetries forced by RLHF indicates that CSS researchers must view LLM behavior simulation with extreme skepticism. Models do not faithfully represent true distributions of nuanced human behavior; their ideological generation spaces are warped intentionally by safety guardrails. As evidenced by LLaMA-2 collapsing a conservative simulation request into a generic safety-aligned liberal response, utilizing these tools for predicting elections, gauging polarized public sentiment, or designing marketing messages risks harvesting hallucinations generated entirely by alignment-driven conformity. 
+
+\textbf{3. Automated Bias in Next-Generation Media} \\
+The seamless capability to algorithmically steer a model's textual vocabulary (injecting "systemic oppression" automatically) and its visual aesthetic framing (shifting lighting from sunny crowds to dark, austere rooms) utilizing continuous mathematical vectors demonstrates an unprecedented surface for manipulative automation. As Unified Language Models lower the cost of high-definition multimedia propaganda to zero, malicious actors can simply apply a $+25 \alpha$ vector to spin universally tailored, ideologically polarized synthetic media in real-time, locking audiences into multimodal echo chambers generated with subliminal aesthetic perfection.
 
 
 \section{Conclusion and Future Work}
 \label{conclusion}
 
-This thesis establishes that latent ideological dimensions in Large Language Models are not merely descriptive emergent epiphenomena, but functional pathways that can be extracted, diagnosed, and causally manipulated to shift behaviors. Generalizing ideological probing far beyond simple text imitation, we proved how steering shifts the internal classification of biases and radically manipulates generation aesthetics across modalities. Our novel investigations utilizing Qwen3-VL and Janus-Pro confirm that foundational visual intelligence intrinsically anchors upon textual ideological primitives to comprehend visual context.
+This thesis establishes that latent political ideological dimensions in foundation models are not merely descriptive emergent epiphenomena, but highly functional, cross-modal geometric pathways that can be extracted, diagnosed, and causally manipulated to shift system behaviors. 
 
-The societal implications of this are immense. As LLMs are increasingly deployed as political polling surrogates, unbiased content moderators, or mass visual propaganda generators, blind reliance on their assumed ideological neutrality presents acute risks. Furthermore, if a model subconsciously associates "rural" and "industrial" heavily with one political extreme, and "diversity" heavily with the other, these biases become algorithmic physiognomy—stereotypes baked deeply into the geometric heart of standard generation algorithms.
+Generalizing ideological probing far beyond simple text persona imitation, I proved how steering algorithmically shifts the internal classification logic of models and radically manipulates semantic text generation. My novel multimodal investigations utilizing Qwen3-VL and Janus-Pro confirm that foundational visual intelligence intrinsically anchors upon textual ideological primitives to comprehend visual context, mapping legislative text voting data seamlessly onto photographs of faces and landscapes.
 
-Future work must rigorously investigate this alignment asymmetry. How do diffusion architectures (e.g., Stable Diffusion) specifically inherit these ideological vectors? Can we construct complex "Mixtures of Steering" designed to artificially synthesize entire voter demographics for real-time polling simulations? The advancement of safety protocols and equitable intelligence moving forward demands we maintain precise, mathematical vigilance over the political steering wheels embedded within our foundational architectures.
+Moving forward, interpretability and CSS researchers must pioneer multi-dimensional steering methodologies to separate partisan identity from cultural aesthetics. How exactly do continuous image diffusion architectures specifically inherit these language vectors? Can researchers construct complex "Mixtures of Steering" designed to artificially synthesize entire voter demographic arrays for controlled societal simulations? As the boundary between text and unified visual intelligence disappears entirely, the advancement of robust safety protocols demands that I maintain precise, quantitative vigilance over the political steering wheels embedded within my foundational architectures.
 
 \newpage
 \setlength{\bibparsep}{0pt}

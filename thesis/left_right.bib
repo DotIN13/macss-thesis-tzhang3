@@ -100,6 +100,17 @@
   langid = {english}
 }
 
+@article{carter2011single,
+  title = {A Single Exposure to the {{American}} Flag Shifts Support toward {{Republicanism}} up to 8 Months Later},
+  author = {Carter, Travis J and Ferguson, Melissa J and Hassin, Ran R},
+  year = {2011},
+  journal = {Psychological science},
+  volume = {22},
+  number = {8},
+  pages = {1011--1018},
+  publisher = {Sage Publications Sage CA: Los Angeles, CA}
+}
+
 @article{caugheyDynamicEstimationLatent2015,
   title = {Dynamic {{Estimation}} of {{Latent Opinion Using}} a {{Hierarchical Group-Level IRT Model}}},
   author = {Caughey, Devin and Warshaw, Christopher},
@@ -374,6 +385,23 @@
   abstract = {Large language models (LLMs) have demonstrated the ability to generate text that realistically reflects a range of different subjective human perspectives. This paper studies how LLMs are seemingly able to reflect more liberal versus more conservative viewpoints among other political perspectives in American politics. We show that LLMs possess linear representations of political perspectives within activation space, wherein more similar perspectives are represented closer together. To do so, we probe the attention heads across the layers of three open transformer-based LLMs ({\textbackslash}texttt\{Llama-2-7b-chat\}, {\textbackslash}texttt\{Mistral-7b-instruct\}, {\textbackslash}texttt\{Vicuna-7b\}). We first prompt models to generate text from the perspectives of different U.S.{\textasciitilde}lawmakers. We then identify sets of attention heads whose activations linearly predict those lawmakers' DW-NOMINATE scores, a widely-used and validated measure of political ideology. We find that highly predictive heads are primarily located in the middle layers, often speculated to encode high-level concepts and tasks. Using probes only trained to predict lawmakers' ideology, we then show that the same probes can predict measures of news outlets' slant from the activations of models prompted to simulate text from those news outlets. These linear probes allow us to visualize, interpret, and monitor ideological stances implicitly adopted by an LLM as it generates open-ended responses. Finally, we demonstrate that by applying linear interventions to these attention heads, we can steer the model outputs toward a more liberal or conservative stance. Overall, our research suggests that LLMs possess a high-level linear representation of American political ideology and that by leveraging recent advances in mechanistic interpretability, we can identify, monitor, and steer the subjective perspective underlying generated text.},
   copyright = {Creative Commons Attribution Non Commercial Share Alike 4.0 International},
   keywords = {Artificial Intelligence (cs.AI),Computation and Language (cs.CL),Computers and Society (cs.CY),FOS: Computer and information sciences,Human-Computer Interaction (cs.HC),Machine Learning (cs.LG)}
+}
+
+@misc{lampinenLinearRepresentationsLanguage2026,
+  title = {Linear Representations in Language Models Can Change Dramatically over a Conversation},
+  author = {Lampinen, Andrew Kyle and Li, Yuxuan and Hosseini, Eghbal and Bhardwaj, Sangnie and Shanahan, Murray},
+  year = {2026},
+  month = feb,
+  number = {arXiv:2601.20834},
+  eprint = {2601.20834},
+  primaryclass = {cs},
+  publisher = {arXiv},
+  doi = {10.48550/arXiv.2601.20834},
+  urldate = {2026-03-29},
+  abstract = {Language model representations often contain linear directions that correspond to high-level concepts. Here, we study the dynamics of these representations: how representations evolve along these dimensions within the context of (simulated) conversations. We find that linear representations can change dramatically over a conversation; for example, information that is represented as factual at the beginning of a conversation can be represented as non-factual at the end and vice versa. These changes are content-dependent; while representations of conversation-relevant information may change, generic information is generally preserved. These changes are robust even for dimensions that disentangle factuality from more superficial response patterns, and occur across different model families and layers of the model. These representation changes do not require on-policy conversations; even replaying a conversation script written by an entirely different model can produce similar changes. However, adaptation is much weaker from simply having a sci-fi story in context that is framed more explicitly as such. We also show that steering along a representational direction can have dramatically different effects at different points in a conversation. These results are consistent with the idea that representations may evolve in response to the model playing a particular role that is cued by a conversation. Our findings may pose challenges for interpretability and steering -- in particular, they imply that it may be misleading to use static interpretations of features or directions, or probes that assume a particular range of features consistently corresponds to a particular ground-truth value. However, these types of representational dynamics also point to exciting new research directions for understanding how models adapt to context.},
+  archiveprefix = {arXiv},
+  keywords = {Computer Science - Computation and Language,Computer Science - Machine Learning},
+  file = {C\:\\Users\\tiger\\Zotero\\storage\\R44YMZLE\\Lampinen et al. - 2026 - Linear representations in language models can change dramatically over a conversation.pdf;C\:\\Users\\tiger\\Zotero\\storage\\IJVC7IP4\\2601.html}
 }
 
 @article{lemensPositioningPoliticalTexts2025,
@@ -884,4 +912,19 @@
   urldate = {2025-05-19},
   copyright = {https://doi.org/10.15223/policy-029},
   isbn = {979-8-3315-0620-9}
+}
+
+@inproceedings{zhangProbingPoliticalIdeology2025,
+  title = {Probing {{Political Ideology}} in {{Large Language Models}}: {{How Latent Political Representations Generalize Across Tasks}}},
+  shorttitle = {Probing {{Political Ideology}} in {{Large Language Models}}},
+  booktitle = {Findings of the {{Association}} for {{Computational Linguistics}}: {{EMNLP}} 2025},
+  author = {Zhang, Tianyi},
+  year = {2025},
+  pages = {23349--23360},
+  publisher = {Association for Computational Linguistics},
+  address = {Suzhou, China},
+  doi = {10.18653/v1/2025.findings-emnlp.1267},
+  urldate = {2026-03-27},
+  langid = {english},
+  file = {C:\Users\tiger\Zotero\storage\JZAKTMPQ\Zhang - 2025 - Probing Political Ideology in Large Language Models How Latent Political Representations Generalize.pdf}
 }
