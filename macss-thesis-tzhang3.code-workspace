@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../linear-political-llm"
+		},
+		{
+			"path": "../vision-political-llm"
+		}
+	],
+	"settings": {}
+}
