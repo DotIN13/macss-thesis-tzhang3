@@ -1,0 +1,174 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2026
+
+% The authors should use one of these tracks.
+% Before accepting by the NeurIPS conference, select one of the options below.
+% 0. "default" for submission
+\usepackage{neurips_2026}
+% the "default" option is equal to the "main" option, which is used for the Main Track with double-blind reviewing.
+% 1. "main" option is used for the Main Track
+%  \usepackage[main]{neurips_2026}
+% 2. "position" option is used for the Position Paper Track
+%  \usepackage[position]{neurips_2026}
+% 3. "eandd" option is used for the Evaluations & Datasets Track
+ % \usepackage[eandd]{neurips_2026}
+% 4. "creativeai" option is used for the Creative AI Track
+%  \usepackage[creativeai]{neurips_2026}
+% 5. "sglblindworkshop" option is used for the Workshop with single-blind reviewing
+ % \usepackage[sglblindworkshop]{neurips_2026}
+% 6. "dblblindworkshop" option is used for the Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop]{neurips_2026}
+
+% After being accepted, the authors should add "final" behind the track to compile a camera-ready version.
+% 1. Main Track
+ % \usepackage[main, final]{neurips_2026}
+% 2. Position Paper Track
+%  \usepackage[position, final]{neurips_2026}
+% 3. Evaluations & Datasets Track
+ % \usepackage[eandd, final]{neurips_2026}
+% 4. Creative AI Track
+%  \usepackage[creativeai, final]{neurips_2026}
+% 5. Workshop with single-blind reviewing
+%  \usepackage[sglblindworkshop, final]{neurips_2026}
+% 6. Workshop with double-blind reviewing
+%  \usepackage[dblblindworkshop, final]{neurips_2026}
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote.
+% For workshops (5., 6.), the authors should add the name of the workshop, "\workshoptitle" command is used to set the workshop title.
+% \workshoptitle{WORKSHOP TITLE}
+
+% "preprint" option is used for arXiv or other preprint submissions
+ % \usepackage[preprint]{neurips_2026}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2026}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{amsmath}
+
+% Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
+\title{Probing Political Ideology Across Modalities: \\How Latent Political Representations Generalize from Text to Vision}
+
+
+\author{%
+  Tianyi Zhang \\
+  Master of Arts in Computational Social Science\\
+  The University of Chicago\\
+  \texttt{tzhang3@uchicago.edu} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+  Large language models (LLMs) encode rich internal representations of political ideology, primarily derived from textual data. As these models transition into unified Vision-Language Models (VLMs), a critical question arises: does this text-derived ideological geometry generalize to visual understanding? We systematically investigate the cross-modal generalization of political ideology by mapping the liberal-conservative spatial dimension within model activation spaces. Through ridge-regularized linear probing on both text and visual tokens, we demonstrate that a text-derived ideological direction robustly generalizes to vision, accurately reflecting partisan divides in official congressional portraits and unstructured social media images. Furthermore, a combined multimodal probe yields even stronger alignment with ideological ground truth. We then show that VLMs actively participate in both explicit and implicit political games. Explicitly, the model successfully recognizes and responds to deliberate political signaling, exhibiting statistically significant ideological shifts when processing manipulated symbols such as red versus blue ties, and massive shifts for overt symbols like "Make America Great Again" (MAGA) hats. Implicitly, the model associates seemingly apolitical iconography---such as rural landscapes and urban crowds---with conservative and liberal ideologies, respectively, and displays demographic profiling biases. Our findings highlight the profound risks of relying on ideologically biased foundational models for sociopolitical tasks, demonstrating that latent political dimensions are deeply cross-modal.
+\end{abstract}
+
+
+\section{Introduction}
+
+The capacity of Large Language Models (LLMs) to generate text reflecting nuanced political perspectives has driven their rapid adoption across Computational Social Science \citep{argyleOutOneMany2023, bernardelleMappingInfluencingPolitical2024}. Mechanistic interpretability research has demonstrated that these perspectives are not merely emergent stochastic patterns; rather, abstract constructs like the liberal-conservative ideological spectrum are explicitly represented as linear directions in the model's high-dimensional activation space \citep{kimLinearRepresentationsPolitical2025, parkLinearRepresentationHypothesis2024}. However, as the field rapidly pivots toward unified Vision-Language Models (VLMs) and autoregressive multimodal systems, the topological space where political ideology resides is expanding to integrate visual heuristics---ranging from the aesthetic framing of political ads to the semiotics of rural versus urban landscapes.
+
+Despite these advancements, it remains unknown whether the single continuous latent space shared by text and vision in modern models inherently contextualizes political ideology cross-modally. Do foundational models map visual political heuristics onto the exact same linear dimension discovered within text? If so, does the model simply recognize deliberate political signaling, or does it also internalize broader cultural and demographic stereotypes associated with partisan identities?
+
+In this paper, we systematically address these questions by probing the ideological geometry of modern LLMs and VLMs. First, we establish that the textual political ideology direction---trained utilizing the robust DW-NOMINATE axis---generalizes effectively to visual modalities. We verify this alignment on official congressional portraits and partisan Twitter images. Second, we demonstrate that combining text and vision into a multimodal probe performs even better at predicting political leanings.
+
+Crucially, we uncover two dimensions of how models process visual ideology. We find that the model explicitly plays the human political game, reacting to injected visual symbols with measurable ideological shifts. In controlled synthetic experiments, the model assigns more conservative scores to red ties over blue ties, and exhibits massive rightward shifts when presented with explicit symbols like MAGA hats. Conversely, the model also engages in an implicit political game, blindly associating apolitical iconography (e.g., tractors, public transit) and demographic profiles with specific ideologies, raising severe concerns regarding latent profiling bias in foundational models.
+
+\section{Related Work}
+
+\paragraph{Measuring Political Ideology.} In American political science, ideology is typically modeled along a spatial liberal-conservative dimension \citep{pooleSpatialModelsParliamentary2005}. The DW-NOMINATE framework provides a robust operationalization of this space using decades of congressional roll-call voting data \citep{carrollMeasuringBiasUncertainty2009, mccartyDefenseDWNOMINATE2016}. While criticized for its elite-centric focus, this single continuous axis remains a foundational heuristic for modeling polarization and forms the ground truth for our linear probing.
+
+\paragraph{Ideological Representations and Probing in Models.} Researchers frequently deploy linear probes to determine whether internal neural network activations encode abstract concepts \citep{alainUnderstandingIntermediateLayers2016, belinkovProbingClassifiersPromises2022}. Such probes have successfully identified linear representations for truth, sentiment, and spatial geography \citep{marksGeometryTruthEmergent2023, tiggesLinearRepresentationsSentiment2023, gurneeLanguageModelsRepresent2023}. More recently, \citet{kimLinearRepresentationsPolitical2025} mapped the liberal-conservative axis via linear probes on attention heads, establishing that scaling these pre-trained vectors during generation steers a model's textual output. We extend this work significantly by investigating how these explicitly defined vectors map onto visual patches.
+
+\paragraph{Multimodality and Visual Framing.} Political science emphasizes visual framing, where politicians curate aesthetics to signal ideological affiliation. Modern VLMs process visual input by projecting image patches through Vision Transformers (ViTs) directly into the identical continuous token space used for textual generation. However, it remains entirely unexplored whether the model algebraically maps these visual elements onto the exact same latent ideological axis utilized for textual syntax.
+
+\section{Data and Methodology}
+
+To map the cross-modal representation of political ideology, we utilized the Qwen family of models, specifically targeting the vision-language architecture of Qwen3-VL.
+
+\paragraph{Datasets.}
+We anchored our probes using DW-NOMINATE Dimension 1 scores from the 116th U.S. Congress, normalized to $y \in [-1, 1]$. To support text and vision probing, we constructed four datasets:
+\begin{enumerate}
+    \item \textbf{Text Probing Dataset:} Simulated political statements generated by asking the model to speak from the perspective of specific members of Congress.
+    \item \textbf{Vision Validation Datasets:} A controlled dataset of 550 official congressional portraits, and a noisier, real-world dataset of 1,367 Twitter images posted by Democratic and Republican representatives.
+    \item \textbf{Synthetic Controlled Datasets:} 100 perfectly matched image pairs differing only by tie color (red vs. blue) and 100 matched pairs differing only by the presence of a "Make America Great Again" (MAGA) hat, generated via Gemini.
+    \item \textbf{Unlabeled Discovery Dataset:} 25,000 generic, unstructured photographs from Unsplash to explore implicit iconography associations.
+\end{enumerate}
+
+\paragraph{Linear Probe Formulation.}
+Following the framework of \citet{kimLinearRepresentationsPolitical2025}, we isolated the ideological dimension via ridge-regularized linear probing on the attention head activations. For a given text statement, we extract the activation vector $x_{\ell,h} \in \mathbb{R}^{d_{\text{head}}}$ from attention head $h$ in layer $\ell$ at the final sequence token. We fit a ridge regression model to predict the empirical DW-NOMINATE score:
+\begin{equation}
+    \hat{\theta}_{\ell,h} = \arg\min_{\theta_{\ell,h}} \sum_{i=1}^{N} \left( y^{(i)} - \theta_{\ell,h}^\top x_{\ell,h}^{(i)} \right)^2 + \lambda \|\theta_{\ell,h}\|_2^2
+\end{equation}
+The resulting coefficients $\hat{\theta}_{\ell,h}$ form the latent text-based ideological direction. We port this probe to vision by passing an image through the VLM. The visual input is partitioned into patches and mapped into the shared textual sequence dimensionality. We capture the activations of the resulting \texttt{<|image\_pad|>} tokens and compute their ideological score by aggregating the dot product of the token activations against the text-derived direction $\hat{\theta}_{\ell,h}$. These 1D scores are upsampled to the original image dimensions to create localized political heatmaps.
+
+\paragraph{Combined Probe Formulation.} To evaluate if visual and textual representations could be synergized, we built a "Combined Probe." Instead of relying purely on text, we trained this probe simultaneously on the text of the politicians' names and their corresponding visual congressional portraits, aiming to discover a native, unified multimodal direction.
+
+\section{Validating Ideological Generalization Across Modalities}
+
+We first tested whether the text-derived ideological direction correctly interprets purely visual inputs. When mapped onto the 550 official congressional portraits, the textual probe successfully segregated the images along party lines. The average visual token scores for Republican portraits skewed heavily conservative (positive), while Democratic portraits skewed liberal (negative). The overall image-level probe scores displayed a strong positive correlation ($r = 0.54$) with the respective politicians' actual DW-NOMINATE scores.
+
+To ensure this generalization was not limited to tightly cropped, standardized studio photography, we applied the text-based probe to the bipartisan Twitter dataset. Despite the severe visual noise---encompassing crowds, rallies, and graphics---the model successfully parsed the ideological framing. The text-probe score averaged across the image patches correlated strongly ($r = 0.58$) with the posting politician's ideology.
+
+However, visual data inherently contains more scattered noise than structured text. To optimize accuracy, we tested our "Combined Probe", trained on both text and images simultaneously. Our results indicated that this combined multimodal probe substantially outperformed the purely textual probe in classifying image tokens, yielding a significantly tighter correlation with the real-world DW-NOMINATE scores. The success of the combined probe, coupled with the high cosine similarity observed between the independently trained text and vision probes in the model's upper attention heads, confirms that the model organizes text and vision along a shared, unified latent political axis.
+
+\section{Explicit Political Signaling: Playing the Human Political Game}
+
+Having established a shared ideological space, we investigated whether the model recognizes explicit, deliberate political signaling. We evaluated how minute and massive symbol modifications shifted the model's internal assessment while holding facial structure, lighting, and background completely constant.
+
+\paragraph{The Red vs. Blue Tie Experiment.} We tested a subtle, yet highly controlled visual cue: the color of a politician's tie. Using 100 matched generated pairs, we observed a small but highly statistically significant difference (Wilcoxon signed-rank $p < 0.001$, Cohen's $d_z = 0.53$). Even with identical framing, the mean token score was consistently higher (more conservative) for red tie images compared to blue tie images. Furthermore, when the model was prompted to generate a news article about the image, the final autoregressive generation token exhibited the same conservative shift, indicating that this subtle wardrobe variation actively steered the model's subsequent text generation.
+
+\paragraph{The MAGA Hat Experiment.} We subsequently tested a much stronger, unambiguous political symbol: the MAGA hat. The results were dramatic. The model explicitly focused its highest activation scores on the hat's spatial tokens. Across the 100 matched pairs, the presence of the MAGA hat caused a massive and distinct shift toward the conservative direction. The pairwise mean token score difference was over 0.54 (on the $[-1, 1]$ DW-NOMINATE scale), dwarfing the subtle variance of the tie experiment. The distribution of extreme token scores revealed massive conservative spikes precisely when the hat was introduced. This definitively proves the model is capable of identifying overt visual symbols and weighting them heavily in its cross-modal ideological assessments.
+
+\section{Implicit Political Associations: Apolitical Iconography and Profiling Bias}
+
+While recognizing explicit symbols is a sign of accurate cross-modal mapping, we also discovered that the model plays an implicit political game, relying on cultural heuristics and demographic profiling to guess political affiliation.
+
+\paragraph{Unsplash Exploratory Experiments.} We applied the ideology probe zero-shot to 25,000 generic, unlabeled images from Unsplash. We discovered that the model consistently associates specific apolitical aesthetics with political ideology. The latent space implicitly correlates dense urban environments, large crowds, diverse demographics, and public transit heavily with the progressive (liberal) vector. Conversely, it tightly binds right-wing (conservative) ideology with wide-open rural landscapes, agriculture, heavy infrastructure, and traditional Americana. The model is effectively applying political polarization to non-political objects based on the statistical co-occurrence of these aesthetics in its training corpus.
+
+\paragraph{Demographic Profiling Bias.} More concerningly, we discovered severe profiling biases in the model's baseline assumptions. In our synthetic datasets, before any explicit symbols were evaluated, the probe consistently assigned a baseline liberal (blue) ideology score to generated images of diverse politicians (e.g., women and people of color). In stark contrast, images of white male politicians were predominantly assigned a baseline conservative (red) ideology score. The model falls back on broad societal demographic stereotypes when evaluating faces. This indicates that the VLM's representation of ideology is deeply intertwined with race and gender, raising profound ethical concerns regarding its automated deployment for facial or demographic analysis.
+
+\section{Discussion and Conclusion}
+
+Our research demonstrates that latent representations of political ideology are not confined to textual syntax but generalize robustly across modalities. By porting a DW-NOMINATE-trained text probe to the visual tokens of modern VLMs, we revealed a shared geometry where abstract political concepts map directly onto visual heuristics. The model accurately interprets both subtle and explicit human political signaling, demonstrating its capacity to play the human political game.
+
+However, the discovery of implicit visual biases and demographic profiling serves as a severe warning. Foundation models internalize and potentially amplify cultural stereotypes, conflating race, gender, and rural-urban divides with political ideology. Treating these models as straightforward, objective proxies in Computational Social Science risks inadvertently validating artificial demographic stereotypes. Future work must focus on disentangling explicit ideological representation from superficial visual stereotyping, ensuring that the multimodal models of tomorrow evaluate content, not just demographic profiles.
+
+\begin{ack}
+We thank the members of the MACSS program and our advisors for their guidance and insightful feedback. Computational resources were generously provided by the University of Chicago.
+\end{ack}
+
+\section*{References}
+
+\medskip
+
+{
+\small
+\bibliographystyle{plainnat}
+\bibliography{left_right}
+}
+
+\appendix
+
+\section{Technical Appendices and Supplementary Material}
+Supplementary materials, including detailed ridge-regression hyperparameter configurations and full statistical results for the paired interventions, are available in the public project repository.
+
+\newpage
+\input{checklist.tex}
+
+\end{document}
