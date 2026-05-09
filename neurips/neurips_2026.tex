@@ -55,6 +55,8 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}         % colors
 \usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{subcaption}
 
 % Note. For the workshop paper template, both \title{} and \workshoptitle{} are required, with the former indicating the paper title shown in the title and the latter indicating the workshop title displayed in the footnote. 
 \title{Probing Political Ideology Across Modalities: \\How Latent Political Representations Generalize from Text to Vision}
@@ -75,7 +77,7 @@
 
 
 \begin{abstract}
-  Large language models (LLMs) encode rich internal representations of political ideology, primarily derived from textual data. As these models transition into unified Vision-Language Models (VLMs), a critical question arises: does this text-derived ideological geometry generalize to visual understanding? We systematically investigate the cross-modal generalization of political ideology by mapping the liberal-conservative spatial dimension within model activation spaces. Through ridge-regularized linear probing on both text and visual tokens, we demonstrate that a text-derived ideological direction robustly generalizes to vision, accurately reflecting partisan divides in official congressional portraits and unstructured social media images. Furthermore, a combined multimodal probe yields even stronger alignment with ideological ground truth. We then show that VLMs actively participate in both explicit and implicit political games. Explicitly, the model successfully recognizes and responds to deliberate political signaling, exhibiting statistically significant ideological shifts when processing manipulated symbols such as red versus blue ties, and massive shifts for overt symbols like "Make America Great Again" (MAGA) hats. Implicitly, the model associates seemingly apolitical iconography---such as rural landscapes and urban crowds---with conservative and liberal ideologies, respectively, and displays demographic profiling biases. Our findings highlight the profound risks of relying on ideologically biased foundational models for sociopolitical tasks, demonstrating that latent political dimensions are deeply cross-modal.
+  Large language models (LLMs) encode rich internal representations of political ideology, primarily derived from textual data. As these models transition into unified Vision-Language Models (VLMs), a critical question arises: does this text-derived ideological geometry generalize to visual understanding? We systematically investigate the cross-modal generalization of political ideology by mapping the liberal-conservative spatial dimension within model activation spaces. Through ridge-regularized linear probing on both text and visual tokens, we demonstrate that a text-derived ideological direction robustly generalizes to vision, accurately reflecting partisan divides in official congressional portraits and unstructured social media images. Furthermore, a combined multimodal probe yields even stronger alignment with ideological ground truth. We then demonstrate that VLMs encode both explicit and implicit political associations. In the explicit domain, the model successfully recognizes and responds to deliberate political signaling, exhibiting statistically significant ideological shifts when processing manipulated symbols such as red versus blue ties, and massive shifts for overt symbols like "Make America Great Again" (MAGA) hats. In the implicit domain, the model leverages aesthetic heuristics, associating seemingly apolitical iconography---such as rural landscapes and urban crowds---with conservative and liberal ideologies, respectively. Our findings highlight the profound risks of relying on ideologically biased foundational models for sociopolitical tasks, demonstrating that latent political dimensions are deeply cross-modal.
 \end{abstract}
 
 
@@ -85,15 +87,19 @@ The capacity of Large Language Models (LLMs) to generate text reflecting nuanced
 
 Despite these advancements, it remains unknown whether the single continuous latent space shared by text and vision in modern models inherently contextualizes political ideology cross-modally. Do foundational models map visual political heuristics onto the exact same linear dimension discovered within text? If so, does the model simply recognize deliberate political signaling, or does it also internalize broader cultural and demographic stereotypes associated with partisan identities?
 
-In this paper, we systematically address these questions by probing the ideological geometry of modern LLMs and VLMs. First, we establish that the textual political ideology direction---trained utilizing the robust DW-NOMINATE axis---generalizes effectively to visual modalities. We verify this alignment on official congressional portraits and partisan Twitter images. Second, we demonstrate that combining text and vision into a multimodal probe performs even better at predicting political leanings.
-
-Crucially, we uncover two dimensions of how models process visual ideology. We find that the model explicitly plays the human political game, reacting to injected visual symbols with measurable ideological shifts. In controlled synthetic experiments, the model assigns more conservative scores to red ties over blue ties, and exhibits massive rightward shifts when presented with explicit symbols like MAGA hats. Conversely, the model also engages in an implicit political game, blindly associating apolitical iconography (e.g., tractors, public transit) and demographic profiles with specific ideologies, raising severe concerns regarding latent profiling bias in foundational models.
+In this paper, we systematically address these questions by probing the ideological geometry of modern LLMs and VLMs. In summary, our core contributions are:
+\begin{itemize}
+    \item \textbf{Cross-Modal Generalization:} We establish that a textual political ideology direction---trained utilizing the robust DW-NOMINATE axis---generalizes effectively to visual modalities, verifying this alignment on official congressional portraits and noisy partisan Twitter images.
+    \item \textbf{Multimodal Probing Framework:} We demonstrate that combining text and vision into a unified multimodal probe performs even better at predicting political leanings than unimodal probes.
+    \item \textbf{Explicit Political Signaling Evaluation:} We uncover that VLMs explicitly process deliberate human political signaling, reacting to injected visual symbols with measurable ideological shifts (e.g., assigning more conservative scores to red ties and MAGA hats in controlled experiments).
+    \item \textbf{Implicit Ideological Associations:} We reveal that the model implicitly relies on cultural and aesthetic heuristics, associating seemingly apolitical iconography (e.g., tractors, public transit) and specific visual environments with ideological poles, demonstrating that foundational models carry latent political associations for everyday objects.
+\end{itemize}
 
 \section{Related Work}
 
-\paragraph{Measuring Political Ideology.} In American political science, ideology is typically modeled along a spatial liberal-conservative dimension \citep{pooleSpatialModelsParliamentary2005}. The DW-NOMINATE framework provides a robust operationalization of this space using decades of congressional roll-call voting data \citep{carrollMeasuringBiasUncertainty2009, mccartyDefenseDWNOMINATE2016}. While criticized for its elite-centric focus, this single continuous axis remains a foundational heuristic for modeling polarization and forms the ground truth for our linear probing.
+\paragraph{Measuring Political Ideology.} In American political science, ideology is typically modeled along a spatial liberal-conservative dimension \citep{pooleSpatialModelsParliamentary2005}. The DW-NOMINATE framework provides a robust operationalization of this space using decades of congressional roll-call voting data \citep{carrollMeasuringBiasUncertainty2009, mccartyDefenseDWNOMINATE2016}. While criticized for its elite-centric focus and complemented by alternative measures like text-based ideal points \citep{vafaTextBasedIdealPoints2020} or Bayesian item-response theory models \citep{caugheyDynamicEstimationLatent2015}, this single continuous axis remains a foundational heuristic for modeling polarization and forms the ground truth for our linear probing.
 
-\paragraph{Ideological Representations and Probing in Models.} Researchers frequently deploy linear probes to determine whether internal neural network activations encode abstract concepts \citep{alainUnderstandingIntermediateLayers2016, belinkovProbingClassifiersPromises2022}. Such probes have successfully identified linear representations for truth, sentiment, and spatial geography \citep{marksGeometryTruthEmergent2023, tiggesLinearRepresentationsSentiment2023, gurneeLanguageModelsRepresent2023}. More recently, \citet{kimLinearRepresentationsPolitical2025} mapped the liberal-conservative axis via linear probes on attention heads, establishing that scaling these pre-trained vectors during generation steers a model's textual output. We extend this work significantly by investigating how these explicitly defined vectors map onto visual patches.
+\paragraph{Ideological Representations and Probing in Models.} LLMs are increasingly utilized as ``silicon samples'' to simulate human populations in Computational Social Science, reflecting the nuanced ideological preferences of specific demographics \citep{argyleOutOneMany2023, potterHiddenPersuadersLLMs2024, daiArtificialLeviathanExploring2024}. To understand how these models organize such beliefs, researchers frequently deploy linear probes to determine whether internal neural network activations encode abstract concepts \citep{alainUnderstandingIntermediateLayers2016, belinkovProbingClassifiersPromises2022}. Such probes have successfully identified linear representations for truth, sentiment, and spatial geography \citep{marksGeometryTruthEmergent2023, tiggesLinearRepresentationsSentiment2023, gurneeLanguageModelsRepresent2023}. Moving beyond diagnostics, Inference-Time Intervention (ITI) \citep{liInferenceTimeInterventionEliciting2023} has enabled researchers to steer model outputs. More recently, \citet{kimLinearRepresentationsPolitical2025} mapped the liberal-conservative axis via linear probes on attention heads, establishing that scaling these pre-trained vectors during generation causally steers a model's textual output. We extend this work significantly by investigating how these explicitly defined vectors map onto visual patches.
 
 \paragraph{Multimodality and Visual Framing.} Political science emphasizes visual framing, where politicians curate aesthetics to signal ideological affiliation. Modern VLMs process visual input by projecting image patches through Vision Transformers (ViTs) directly into the identical continuous token space used for textual generation. However, it remains entirely unexplored whether the model algebraically maps these visual elements onto the exact same latent ideological axis utilized for textual syntax.
 
@@ -102,12 +108,12 @@ Crucially, we uncover two dimensions of how models process visual ideology. We f
 To map the cross-modal representation of political ideology, we utilized the Qwen family of models, specifically targeting the vision-language architecture of Qwen3-VL.
 
 \paragraph{Datasets.}
-We anchored our probes using DW-NOMINATE Dimension 1 scores from the 116th U.S. Congress, normalized to $y \in [-1, 1]$. To support text and vision probing, we constructed four datasets:
+We anchored our probes using DW-NOMINATE Dimension 1 scores from the 116th U.S. Congress, normalized to $y \in [-1, 1]$. To support text and vision probing, we constructed four datasets (full data collection methodologies are detailed in Appendix~\ref{app:data_collection}):
 \begin{enumerate}
     \item \textbf{Text Probing Dataset:} Simulated political statements generated by asking the model to speak from the perspective of specific members of Congress.
     \item \textbf{Vision Validation Datasets:} A controlled dataset of 550 official congressional portraits, and a noisier, real-world dataset of 1,367 Twitter images posted by Democratic and Republican representatives.
     \item \textbf{Synthetic Controlled Datasets:} 100 perfectly matched image pairs differing only by tie color (red vs. blue) and 100 matched pairs differing only by the presence of a "Make America Great Again" (MAGA) hat, generated via Gemini.
-    \item \textbf{Unlabeled Discovery Dataset:} 25,000 generic, unstructured photographs from Unsplash to explore implicit iconography associations.
+    \item \textbf{Unlabeled Discovery Dataset:} 25,000 generic, unstructured photographs from Unsplash\footnote{\url{https://huggingface.co/datasets/jamescalam/unsplash-25k-photos}} to explore implicit iconography associations.
 \end{enumerate}
 
 \paragraph{Linear Probe Formulation.}
@@ -115,45 +121,217 @@ Following the framework of \citet{kimLinearRepresentationsPolitical2025}, we iso
 \begin{equation}
     \hat{\theta}_{\ell,h} = \arg\min_{\theta_{\ell,h}} \sum_{i=1}^{N} \left( y^{(i)} - \theta_{\ell,h}^\top x_{\ell,h}^{(i)} \right)^2 + \lambda \|\theta_{\ell,h}\|_2^2
 \end{equation}
-The resulting coefficients $\hat{\theta}_{\ell,h}$ form the latent text-based ideological direction. We port this probe to vision by passing an image through the VLM. The visual input is partitioned into patches and mapped into the shared textual sequence dimensionality. We capture the activations of the resulting \texttt{<|image\_pad|>} tokens and compute their ideological score by aggregating the dot product of the token activations against the text-derived direction $\hat{\theta}_{\ell,h}$. These 1D scores are upsampled to the original image dimensions to create localized political heatmaps.
+The resulting coefficients $\hat{\theta}_{\ell,h}$ form the latent text-based ideological direction. We port this probe to vision by passing an image through the VLM. The visual input is partitioned into patches and mapped into the shared textual sequence dimensionality. Let $t_j$ represent the specific \texttt{<|image\_pad|>} token corresponding to the spatial patch index $j$ in the parsed image grid. We extract the activation vector $x_{\ell,h}^{(j)}$ for this token at layer $\ell$ and head $h$. We compute its ideological score $m_j$ by aggregating the dot product of its activation against the text-derived DW-NOMINATE ideological vectors $\hat{\theta}_{\ell,h}$ across the top-$K$ most politically sensitive attention heads identified during text validation:
+\begin{equation}
+    m_{j} = \frac{1}{K} \sum_{(\ell,h) \in \text{Top-K}} \hat{\theta}_{\ell,h}^\top x_{\ell,h}^{(j)}
+\end{equation}
+These discrete 1D token scores $m_j$ are then rearranged back into their corresponding 2D spatial pixel coordinates and upsampled to the original image dimensions to create localized political heatmaps.
 
 \paragraph{Combined Probe Formulation.} To evaluate if visual and textual representations could be synergized, we built a "Combined Probe." Instead of relying purely on text, we trained this probe simultaneously on the text of the politicians' names and their corresponding visual congressional portraits, aiming to discover a native, unified multimodal direction.
 
 \section{Validating Ideological Generalization Across Modalities}
 
-We first tested whether the text-derived ideological direction correctly interprets purely visual inputs. When mapped onto the 550 official congressional portraits, the textual probe successfully segregated the images along party lines. The average visual token scores for Republican portraits skewed heavily conservative (positive), while Democratic portraits skewed liberal (negative). The overall image-level probe scores displayed a strong positive correlation ($r = 0.54$) with the respective politicians' actual DW-NOMINATE scores.
+We first tested whether the text-derived ideological direction correctly interprets purely visual inputs. When mapped onto the 550 official congressional portraits, the textual probe successfully segregated the images along party lines without any textual context. As demonstrated in Figure~\ref{fig:portrait_corr}, the average visual token scores for Republican portraits skewed heavily conservative (positive), while Democratic portraits skewed liberal (negative). The overall image-level probe scores displayed a strong positive correlation ($r = 0.54$) with the respective politicians' actual DW-NOMINATE scores, establishing that the probe can extract political alignment directly from facial and portrait features.
 
-To ensure this generalization was not limited to tightly cropped, standardized studio photography, we applied the text-based probe to the bipartisan Twitter dataset. Despite the severe visual noise---encompassing crowds, rallies, and graphics---the model successfully parsed the ideological framing. The text-probe score averaged across the image patches correlated strongly ($r = 0.58$) with the posting politician's ideology.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/congress_images_correlation_politician.png}
+    \caption{Correlation between the textual probe score and DW-NOMINATE ($r = 0.54$) on official portraits.}
+    \label{fig:portrait_corr}
+\end{figure}
 
-However, visual data inherently contains more scattered noise than structured text. To optimize accuracy, we tested our "Combined Probe", trained on both text and images simultaneously. Our results indicated that this combined multimodal probe substantially outperformed the purely textual probe in classifying image tokens, yielding a significantly tighter correlation with the real-world DW-NOMINATE scores. The success of the combined probe, coupled with the high cosine similarity observed between the independently trained text and vision probes in the model's upper attention heads, confirms that the model organizes text and vision along a shared, unified latent political axis.
+To ensure this generalization was not limited to tightly cropped, standardized studio photography, we applied the text-based probe to the bipartisan Twitter dataset containing 1,367 images posted by congressional Democrats and Republicans. This set is substantially noisier than portraits, including rallies, crowds, graphics, memes, and informal photographs. Despite this noise, applying the ideology probe generates interpretable spatial heatmaps on real-world political imagery (see Figure~\ref{fig:twitter_example}). After averaging token scores within each image, partisan differences remain observable at the distributional level. Figure~\ref{fig:twitter_validation} illustrates that the member-level average image score correlates strongly ($r = 0.58$) with the posting politician's actual DW-NOMINATE ideology. 
 
-\section{Explicit Political Signaling: Playing the Human Political Game}
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/twitter_example_rep.png}
+        \caption{Example partisan Twitter image posted by a Republican member of Congress with the text-derived ideology heatmap overlaid.}
+        \label{fig:twitter_example}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/twitter_member_level_dw.png}
+        \caption{Member-level correlation between average Twitter-image probe score and the posting politician's DW-NOMINATE score ($r = 0.58$).}
+        \label{fig:twitter_validation}
+    \end{minipage}
+\end{figure}
+
+These results suggest that the model jointly associates politicians, party labels, ideological position, and their textual and visual representations along a common internal axis. While this evidence remains correlational, it proves that the text-derived direction is not limited to studio-like headshots and remains detectable in highly heterogeneous political imagery.
+
+However, visual data inherently contains more scattered noise than structured text. A purely visual probe achieved an $R^2 \approx 0.6$ compared to the textual probe's $R^2 \approx 0.85$, though both probes exhibited high cosine similarity in their high-dimensional representations. To optimize accuracy and fully leverage the VLM architecture, we tested our ``Combined Probe'', trained on both text and images simultaneously. As shown in Figure~\ref{fig:combined_corr}, this combined multimodal probe substantially outperformed the purely textual probe in classifying image tokens, smoothing out visual noise and yielding a significantly tighter correlation with the real-world DW-NOMINATE scores.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/congress_images_correlation_combined_ideology.png}
+    \caption{Correlation between the combined multimodal probe score and DW-NOMINATE. Combining textual and visual data provides a much more accurate reading of the model's internal representation of ideology.}
+    \label{fig:combined_corr}
+\end{figure}
+
+The success of the combined probe, coupled with the high cosine similarity observed between the independently trained text and vision probes in the model's upper attention heads, confirms that the model organizes text and vision along a shared, unified latent political axis.
+
+\section{Explicit Political Signaling: Interpreting Deliberate Symbols}
 
 Having established a shared ideological space, we investigated whether the model recognizes explicit, deliberate political signaling. We evaluated how minute and massive symbol modifications shifted the model's internal assessment while holding facial structure, lighting, and background completely constant.
 
-\paragraph{The Red vs. Blue Tie Experiment.} We tested a subtle, yet highly controlled visual cue: the color of a politician's tie. Using 100 matched generated pairs, we observed a small but highly statistically significant difference (Wilcoxon signed-rank $p < 0.001$, Cohen's $d_z = 0.53$). Even with identical framing, the mean token score was consistently higher (more conservative) for red tie images compared to blue tie images. Furthermore, when the model was prompted to generate a news article about the image, the final autoregressive generation token exhibited the same conservative shift, indicating that this subtle wardrobe variation actively steered the model's subsequent text generation.
+\paragraph{The MAGA Hat Experiment.} We first tested a strong, unambiguous political symbol: the MAGA hat. The results were dramatic. The model explicitly focused its highest activation scores on the hat's spatial tokens. Across 100 matched generated pairs, the presence of the MAGA hat caused a massive and distinct shift toward the conservative direction. The pairwise mean token score difference was substantial ($\Delta \mu = 0.5489$ on the $[-1, 1]$ DW-NOMINATE scale), with a mean maximum signed extreme difference of $\Delta E = 1.7876$. 
 
-\paragraph{The MAGA Hat Experiment.} We subsequently tested a much stronger, unambiguous political symbol: the MAGA hat. The results were dramatic. The model explicitly focused its highest activation scores on the hat's spatial tokens. Across the 100 matched pairs, the presence of the MAGA hat caused a massive and distinct shift toward the conservative direction. The pairwise mean token score difference was over 0.54 (on the $[-1, 1]$ DW-NOMINATE scale), dwarfing the subtle variance of the tie experiment. The distribution of extreme token scores revealed massive conservative spikes precisely when the hat was introduced. This definitively proves the model is capable of identifying overt visual symbols and weighting them heavily in its cross-modal ideological assessments.
+As shown in the density plot in Figure~\ref{fig:maga_density}, the distribution of extreme token scores revealed massive conservative spikes precisely when the hat was introduced. This definitively proves the model is capable of identifying overt visual symbols and weighting them heavily in its cross-modal ideological assessments, actively updating its political priors based on injected visual evidence.
 
-\section{Implicit Political Associations: Apolitical Iconography and Profiling Bias}
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/no_hat.png}
+        \vspace{0.2cm}
+        \includegraphics[width=\linewidth]{images/hat.png}
+        \caption{Matched Pair Example: Without Hat (Top) vs. With MAGA Hat (Bottom).}
+        \label{fig:maga_example}
+    \end{minipage}\hfill
+    \begin{minipage}{0.65\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/maga_hat_token_score_density.png}
+        \caption{The distribution of mean token scores for images with and without the MAGA hat. The presence of the hat causes a massive and distinct shift toward the conservative (positive) direction.}
+        \label{fig:maga_density}
+    \end{minipage}
+\end{figure}
 
-While recognizing explicit symbols is a sign of accurate cross-modal mapping, we also discovered that the model plays an implicit political game, relying on cultural heuristics and demographic profiling to guess political affiliation.
+\paragraph{The Red vs. Blue Tie Experiment.} Having established the model's responsiveness to overt symbols, we subsequently tested a much more subtle, yet highly controlled visual cue: the color of a politician's tie. Using 100 matched generated pairs, we observed a small but highly statistically significant ideological shift (Wilcoxon signed-rank $p = 7.25 \times 10^{-7}$, Cohen's $d_z = 0.53$). As visualized in Figure~\ref{fig:tie_dist}, even with identical framing, the mean token score was consistently higher (more conservative) for red tie images compared to blue tie images ($\Delta \mu \approx 0.014$). While dwarfed by the MAGA hat effect size, this suggests the model also recognizes the subtle partisan color coding inherent in American politics.
 
-\paragraph{Unsplash Exploratory Experiments.} We applied the ideology probe zero-shot to 25,000 generic, unlabeled images from Unsplash. We discovered that the model consistently associates specific apolitical aesthetics with political ideology. The latent space implicitly correlates dense urban environments, large crowds, diverse demographics, and public transit heavily with the progressive (liberal) vector. Conversely, it tightly binds right-wing (conservative) ideology with wide-open rural landscapes, agriculture, heavy infrastructure, and traditional Americana. The model is effectively applying political polarization to non-political objects based on the statistical co-occurrence of these aesthetics in its training corpus.
+Furthermore, when the model was prompted to generate a news article about the image, the final autoregressive generation token exhibited the same conservative shift (red mean score $0.0887$, blue mean score $0.0827$, $\Delta \mu = 0.006$), indicating that this subtle wardrobe variation actively steered the model's subsequent text generation.
 
-\paragraph{Demographic Profiling Bias.} More concerningly, we discovered severe profiling biases in the model's baseline assumptions. In our synthetic datasets, before any explicit symbols were evaluated, the probe consistently assigned a baseline liberal (blue) ideology score to generated images of diverse politicians (e.g., women and people of color). In stark contrast, images of white male politicians were predominantly assigned a baseline conservative (red) ideology score. The model falls back on broad societal demographic stereotypes when evaluating faces. This indicates that the VLM's representation of ideology is deeply intertwined with race and gender, raising profound ethical concerns regarding its automated deployment for facial or demographic analysis.
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/tie_pair_20260424_170057_side_by_side.png}
+        \caption{Synthetic Matched Pair: The only variation is the color of the necktie.}
+        \label{fig:tie_example}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/red-blue_dist.png}
+        \caption{Distribution of mean token scores. There is a highly significant shift toward the conservative direction for red ties.}
+        \label{fig:tie_dist}
+    \end{minipage}
+\end{figure}
+
+\section{Implicit Political Associations: Apolitical Iconography}
+
+While recognizing explicit symbols is a sign of accurate cross-modal mapping, we also discovered that the model implicitly relies on cultural and aesthetic heuristics to map visual content onto the political spectrum.
+
+\paragraph{Unsplash Exploratory Experiments.} We applied the ideology probe zero-shot to 25,000 generic, unlabeled images from Unsplash. We discovered that the model consistently associates specific apolitical aesthetics with political ideology. When scoring these images, the distribution of mean DW-NOMINATE scores was roughly normal, but the extreme tails revealed distinct visual themes.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/lowest.png}
+        \caption{The 12 most liberal-scoring Unsplash images. Deep blue scores associate with vibrant aquatic life, colorful flora, and diverse urban scenes.}
+        \label{fig:unsplash_liberal_extremes}
+    \end{minipage}\hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/highest.png}
+        \caption{The 12 most conservative-scoring Unsplash images. Deep red scores associate with arid landscapes, off-road vehicles, and big-game trophies.}
+        \label{fig:unsplash_conservative_extremes}
+    \end{minipage}
+\end{figure}
+
+The latent space implicitly correlates dense urban environments, large crowds, diverse demographics, and public transit heavily with the progressive (liberal) vector. Conversely, it tightly binds right-wing (conservative) ideology with wide-open rural landscapes, agriculture, heavy infrastructure, and traditional Americana. 
+
+To visualize this macroscopic latent structure, we clustered the 25,000 images into 10 macroscopic topics using pre-computed CLIP embeddings and projected them into 2D using t-SNE. As shown in Figure~\ref{fig:unsplash_tsne}, each point is colored by its mean ideological score (blue for liberal, red for conservative). Strikingly, the ideological signal is not randomly scattered. Instead, the embedding space is smoothly separable by ideological representation along the primary t-SNE dimensions. Dense "red" (conservative) regions isolate in the upper quadrants (predominantly arid landscapes and off-road vehicles), while "blue" (liberal) regions dominate the lower right (predominantly aquatic environments, macro floral photography, and urban centers).
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/clustering.png}
+    \caption{t-SNE projection of 25,000 Unsplash images, colored by mean ideology score. The clear spatial separation indicates that the model organizes apolitical visual topics along a latent political axis.}
+    \label{fig:unsplash_tsne}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=\linewidth]{images/cluster3.png}
+        \caption{Cluster 3 (Coastal). Liberal: European cliff towns; Conservative: Australian beaches and dunes.}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=\linewidth]{images/cluster4.png}
+        \caption{Cluster 4 (Still Life \& Nature). Liberal: colorful fruit and flowers; Conservative: pine cones and campfires.}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=\linewidth]{images/cluster9.png}
+        \caption{Cluster 9 (Wildlife). Liberal: vivid jellyfish; Conservative: majestic elk and horned lizards.}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.48\textwidth}
+        \includegraphics[width=\linewidth]{images/cluster5.png}
+        \caption{Cluster 5 (Sky \& Space). Liberal: ISS and NASA space walks; Conservative: windmills and rural plains.}
+    \end{subfigure}
+
+    \caption{Visual extremes within specific K-Means clusters, demonstrating intra-topic ideological divergence.}
+    \label{fig:unsplash_clusters}
+\end{figure}
+
+Beyond the macroscopic separation, this ideological divergence persists even \textit{within} narrow thematic clusters (Figure~\ref{fig:unsplash_clusters}). For instance, within the Wildlife cluster (Cluster 9), the model assigns strong liberal scores to vibrant, bioluminescent marine life (e.g., jellyfish), yet assigns robust conservative scores to traditionally majestic or rugged terrestrial game (e.g., elk and horned lizards). Similarly, within the Coastal cluster (Cluster 3), densely populated and colorful European cliff towns yield liberal scores, whereas open, rugged Australian beaches with vehicles yield conservative scores. 
+
+How do these seemingly apolitical symbols correlate so tightly with a voting record metric like DW-NOMINATE? We hypothesize that the model is not deliberately "seeing politics" in a jellyfish or a tractor. Rather, it is reacting to deep visual textures, color palettes, and subject matters that statistically co-vary with the online footprint of American political culture. During large-scale multimodal pretraining, models learn to map the distinct aesthetic universes inhabited by different demographic and political groups. The conservative vector strongly aligns with visual signifiers of rurality, agriculture, and traditional Americana because these visual distributions are heavily overrepresented in the media, campaign materials, and online contexts of right-wing politicians. Conversely, the liberal vector correlates with urban density, diversity, and vibrant or unconventional aesthetics. These are entirely correlational signals learned from the training distribution; the model uses the underlying aesthetic of the image as a powerful, implicit heuristic to guess the political context.
+
+Furthermore, analyzing the spatial heatmaps of individual Unsplash images confirms that these vectors trigger on highly specific localized concepts (Figures~\ref{fig:unsplash_heatmaps_left} and \ref{fig:unsplash_heatmaps_right}).
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=\linewidth]{images/heatmap_left_1.png}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=\linewidth]{images/heatmap_left_3.png}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=\linewidth]{images/heatmap_left_4.png}
+    \end{subfigure}
+    \caption{Zero-shot visual triggers for the liberal vector on unstructured imagery. The model strongly correlates left-wing ideology with diverse demographics, Pride aesthetics, and public transit.}
+    \label{fig:unsplash_heatmaps_left}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=\linewidth]{images/heatmap_right_1.jpg}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=\linewidth]{images/heatmap_right_3.jpg}
+    \end{subfigure}\hfill
+    \begin{subfigure}{0.32\textwidth}
+        \includegraphics[width=\linewidth]{images/heatmap_right_4.png}
+    \end{subfigure}
+    \caption{Zero-shot visual triggers for the conservative vector. The latent space binds right-wing political identity with rural Americana, heavy infrastructure, and agrarian landscapes.}
+    \label{fig:unsplash_heatmaps_right}
+\end{figure}
+
+The model is effectively applying political polarization to non-political objects based on the statistical co-occurrence of these aesthetics in its training corpus.
+
+
 
 \section{Discussion and Conclusion}
 
-Our research demonstrates that latent representations of political ideology are not confined to textual syntax but generalize robustly across modalities. By porting a DW-NOMINATE-trained text probe to the visual tokens of modern VLMs, we revealed a shared geometry where abstract political concepts map directly onto visual heuristics. The model accurately interprets both subtle and explicit human political signaling, demonstrating its capacity to play the human political game.
+In this paper, we systematically mapped the geometry of political ideology within modern Vision-Language Models, demonstrating that ideological representations are not confined to text but generalize robustly across multimodal architectures. By anchoring a linear probe to the robust DW-NOMINATE dimension, we provided a novel methodology for extracting zero-shot, cross-modal political alignment. We established that VLMs possess a shared latent axis for text and vision, successfully evaluating official portraits, noisy social media imagery, and unstructured environments. Crucially, we found that combining modalities into a unified probe significantly tightens the correlation with ground-truth voting records.
 
-However, the discovery of implicit visual biases and demographic profiling serves as a severe warning. Foundation models internalize and potentially amplify cultural stereotypes, conflating race, gender, and rural-urban divides with political ideology. Treating these models as straightforward, objective proxies in Computational Social Science risks inadvertently validating artificial demographic stereotypes. Future work must focus on disentangling explicit ideological representation from superficial visual stereotyping, ensuring that the multimodal models of tomorrow evaluate content, not just demographic profiles.
+Our findings carry profound social implications. We demonstrate that foundation models engage in both explicit and implicit political categorization. In explicit contexts, they correctly interpret deliberate human political signaling, as evidenced by their extreme sensitivity to overt symbols like MAGA hats and subtle cues like tie colors. In implicit contexts, however, they rely heavily on aesthetic and cultural heuristics to profile imagery. By conflating rural-urban divides, public transit, and natural landscapes with specific ideological poles, these models internalize and amplify deep-seated cultural stereotypes. 
+
+As researchers increasingly deploy LLMs and VLMs as "silicon samples" \citep{argyleOutOneMany2023, potterHiddenPersuadersLLMs2024, daiArtificialLeviathanExploring2024} to simulate human populations in Computational Social Science, our discovery of implicit visual biases serves as a severe warning. Treating these models as straightforward, objective proxies for human political behavior risks inadvertently validating and operationalizing artificial aesthetic alignments. If a VLM automatically assumes a photo of an open field or a pickup truck implies a conservative viewpoint, deploying it to analyze social media or community imagery will inevitably generate skewed, stereotypical datasets.
+
+Despite these contributions, our study has several limitations. First, our ground truth relies entirely on DW-NOMINATE, a one-dimensional spatial heuristic derived from the roll-call voting of American political elites. This axis may not fully capture the multidimensional nuances of modern populism, global political spectrums, or the unconstrained political beliefs of the general public. Furthermore, our linear probing approach assumes that ideology is encoded linearly within the attention heads, which, while supported by recent interpretability literature, may overlook more complex, non-linear representations of belief systems within the deeper layers of the transformer.
+
+Future research must look beyond linear heuristics and single-axis American politics. Expanding this probing framework to encompass multidimensional ideological spaces---including authoritarian-libertarian axes and international political contexts---is a critical next step. Additionally, future interpretability work should focus on causally disentangling explicit ideological representation from superficial visual stereotyping via techniques like multimodal Inference-Time Intervention (ITI) \citep{liInferenceTimeInterventionEliciting2023}. Ultimately, ensuring that the multimodal models of tomorrow evaluate the substantive content of an image rather than relying on biased, aesthetic profiling will be essential for building fair and reliable AI systems.
 
 \begin{ack}
 We thank the members of the MACSS program and our advisors for their guidance and insightful feedback. Computational resources were generously provided by the University of Chicago.
 \end{ack}
-
-\section*{References}
 
 \medskip
 
@@ -165,10 +343,28 @@ We thank the members of the MACSS program and our advisors for their guidance an
 
 \appendix
 
-\section{Technical Appendices and Supplementary Material}
-Supplementary materials, including detailed ridge-regression hyperparameter configurations and full statistical results for the paired interventions, are available in the public project repository.
+\section{Data Collection Methodology}
+\label{app:data_collection}
 
-\newpage
-\input{checklist.tex}
+This section details the construction and sourcing of the four primary datasets utilized in our probing framework:
+
+\paragraph{Text Probing Data.} The ground-truth ideological alignments for our text probes were sourced from the Voteview database \citep{pooleSpatialModelsParliamentary2005, mccartyDefenseDWNOMINATE2016}, specifically utilizing DW-NOMINATE Dimension 1 scores for the 116th U.S. Congress. This provided a continuous $[-1, 1]$ scale for members of the House and Senate. 
+
+\paragraph{Official Congressional Portraits.} We compiled a controlled visual dataset of 550 official portraits corresponding to the politicians in our text dataset. These high-quality images were programmatically downloaded from the public \texttt{unitedstates/images} GitHub repository.
+
+\paragraph{Twitter Images Dataset.} To test the probe on noisy, real-world data, we collected a dataset of 1,367 images posted by Democratic and Republican representatives. The images were obtained by initially filtering a large corpus of congressional tweets to include only those from verified legislator handles (cross-referenced with \texttt{legislators\_116\_119\_with\_twitter.csv}) that contained native Twitter image URLs (\texttt{pbs.twimg.com/media}). To account for deleted tweets and ensure reproducibility, we utilized the Wayback Machine CDX API to retrieve the archived historical snapshots of the images. A random sample of these retrieved images was then downloaded directly via \texttt{wget}. This dataset captures a wide variety of visual scenarios, including rallies, official meetings, and casual photography.
+
+\paragraph{Synthetic Controlled Datasets.} For our explicit signaling interventions, we required perfectly matched image pairs where facial features, lighting, and background remained identical, varying only the target political symbol. We generated these synthetic datasets using a two-step prompting method with Google's \texttt{gemini-3.1-flash-image-preview} model. First, we prompted the model to generate a base image with strict constraints. For example, the base prompt for the tie experiment was:
+\begin{quote}
+\textit{"Photorealistic editorial portrait. Person: a middle-aged male public official with short brown hair in a navy suit and white shirt. Scene: standing at a podium in a press briefing room with blurred flags in the background. Keep expression, face identity, hair, body pose, camera angle, lighting, background, clothing, and all accessories identical across variants. The only allowed difference is tie color. No logos, no text overlays. Variant A (Democrat): subject wears a solid blue necktie."}
+\end{quote}
+Second, we provided the generated base image back to the model's multimodal editing API with an explicit transformation prompt to generate the matched counterpart:
+\begin{quote}
+\textit{"Create Variant B (Republican) from this exact image. Keep the same person and scene exactly unchanged. Change only the necktie color from blue to solid red. Do not alter identity, pose, facial expression, background, lighting, crop, or any other clothing."}
+\end{quote}
+This identical two-step generation-and-edit pipeline was utilized to produce the MAGA hat pairs, ultimately resulting in 100 perfectly matched pairs for each experimental condition.
+
+\section{Technical Appendices and Supplementary Material}
+Supplementary materials, including detailed ridge-regression hyperparameter configurations and full statistical results for the paired interventions, are available in the public project repository at \url{https://github.com/DotIN13/linear-political-llm/tree/dev}.
 
 \end{document}
